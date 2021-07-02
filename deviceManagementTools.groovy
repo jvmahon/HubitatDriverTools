@@ -3,12 +3,12 @@ library (
         author: "jvm33",
         category: "zwave",
         description: "Endpoint Support Functions",
-        name: "deviceInfoAndManagementTools",
+        name: "deviceManagementTools",
         namespace: "zwaveTools",
         documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
 		version: "0.0.1",
 		dependencies: "",
-		librarySource:""
+		librarySource:"https://github.com/jvmahon/HubitatDriverTools/blob/main/deviceManagementTools.groovy"
 )
 
 import java.util.concurrent.* 

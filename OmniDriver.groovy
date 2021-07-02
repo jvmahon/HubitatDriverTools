@@ -72,19 +72,11 @@ metadata {
 }
 #import zwaveTools.globalDataTools
 
-void identify() {
-	log.warn "Device ${device.displayName}: The 'identify' function is experimental and only works for Zwave Plus Version 2 or greater devices!"
-	// Identify function supported by Zwave Plus Version 2 and greater devices!
-		List<Map<String, Short>> indicators = [
-			[indicatorId:0x50, propertyId:0x03, value:0x08], 
-			[indicatorId:0x50, propertyId:0x04, value:0x03],  
-			[indicatorId:0x50, propertyId:0x05, value:0x06]
-		]
-		sendUnsupervised(zwave.indicatorV3.indicatorSet(indicatorCount:3 , value:0, indicatorValues: indicators ))
-}
+#import zwaveTools.deviceIdTools
+void identify() { deviceIdTools_identify() }
 
 
-ConcurrentHashMap getDataRecordByProduct()
+void ConcurrentHashMap getDataRecordByProductLine()
 {
 	String manufacturer = 	hubitat.helper.HexUtils.integerToHexString( device.getDataValue("manufacturer").toInteger(), 2)
 	String deviceType = 	hubitat.helper.HexUtils.integerToHexString( device.getDataValue("deviceType").toInteger(), 2)
@@ -94,7 +86,7 @@ ConcurrentHashMap getDataRecordByProduct()
 }
 
 void showglobalDataRecord() {
-	ConcurrentHashMap dataRecord = getDataRecordByProduct()
+	ConcurrentHashMap dataRecord = getDataRecordByProductLine()
 	log.info "Data record in global storage is ${dataRecord}."
 }
 

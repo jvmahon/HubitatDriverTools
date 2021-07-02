@@ -8,7 +8,7 @@ library (
         documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
 		version: "0.0.1",
 		dependencies: "",
-		librarySource:""
+		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/openSmartHouseTools.groovy"
 )
 
 Map reparseDeviceData(deviceData = null )

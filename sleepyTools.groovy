@@ -8,7 +8,7 @@ library (
         documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
 		version: "0.0.1",
 		dependencies: "(none)",
-		librarySource:""
+		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/sleepyTools.groovy"
 )
 
 void queueCommand(hubitat.zwave.Command cmd, ep = null) {
