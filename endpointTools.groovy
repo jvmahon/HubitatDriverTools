@@ -7,7 +7,7 @@ library (
         namespace: "zwaveTools",
         documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
 		version: "0.0.1",
-		dependencies: "(child creation depends on the thisDeviceDataRecord data record - can this be removed?)",
+		dependencies: "child creation depends on the thisDeviceDataRecord data record - can this be removed?",
 		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/endpointTools.groovy"
 )
 
@@ -76,7 +76,6 @@ void createChildDevices()
 	{ ep, endpointRecord ->
 		
 		endpointRecord.children?.eachWithIndex { thisChildItem, index ->
-		log.debug "endpoint ${ep}, index ${index} has thisChildItem is ${thisChildItem}"
 			String childNetworkId = getChildNetID(ep, index)
 			com.hubitat.app.DeviceWrapper cd = getChildDevice(childNetworkId)
 			if (cd.is( null )) {

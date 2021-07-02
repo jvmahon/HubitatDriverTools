@@ -142,7 +142,7 @@ Map getEndpointClassData(endpointRecord)
 				return
 			} else {
 				String childDriver = getChildComponentDriver(thisEndpointClasses)
-				endpointClassMap.put((it.number as Integer), [driver:[type:childDriver, namespace:"hubitat"], classes:(thisEndpointClasses)])
+				endpointClassMap.put((it.number as Integer), [children:[[type:childDriver, namespace:"hubitat"]], classes:(thisEndpointClasses)])
 			}
 		}
     return endpointClassMap

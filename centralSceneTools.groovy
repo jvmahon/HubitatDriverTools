@@ -2,12 +2,12 @@ library (
         base: "driver",
         author: "jvm33",
         category: "zwave",
-        description: "Handles Zwave Notifications",
+        description: "Handles Zwave Central Scene reports",
         name: "centralSceneTools",
         namespace: "zwaveTools",
         documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
 		version: "0.0.1",
-		dependencies: "(none)",
+		dependencies: "zwaveTools.hubTools",
 		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/centralSceneTools.groovy"
 )
 import java.util.concurrent.* 
@@ -24,6 +24,9 @@ import groovy.transform.Field
 // Driver, therefore you have to key it using the device.deviceNetworkId to get the value for a particuarl device.
 @Field static  ConcurrentHashMap centralSceneButtonState = new ConcurrentHashMap<String, String>()
 
+void centralSceneTools_initialize(){
+	sendUnsupervised(zwave.centralSceneV3.centralSceneSupportedGet())
+}
 String getCentralSceneButtonState(Integer button) { 
  	String key = "${device.deviceNetworkId}.Button.${button}"
 	return centralSceneButtonState.get(key)

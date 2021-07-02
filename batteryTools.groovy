@@ -6,24 +6,29 @@ library (
         name: "batteryTools",
         namespace: "zwaveTools",
         documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
-		version: "0.0.1",
-		dependencies: "(none)",
+        version:"0.0.1",
+		dependencies: "",
 		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/batteryTools.groovy"
+
 )
+
+
 void zwaveEvent(hubitat.zwave.commands.batteryv1.BatteryReport cmd) { processBatteryEvent(cmd) }
 void zwaveEvent(hubitat.zwave.commands.batteryv2.BatteryReport cmd)  { processBatteryEvent(cmd) }
 void zwaveEvent(hubitat.zwave.commands.batteryv3.BatteryReport cmd)  { processBatteryEvent(cmd) }
 void processBatteryEvent(cmd) 
 {
 	// In Z-Wave, battery is only reported for the 'root' device, but if there are child devices with a battery attribute, update them too!
+	
 	List<com.hubitat.app.DeviceWrapper> batteryDevices =  (getChildDevices() + device).findAll{it -> it.hasAttribute("battery")}
 	Map batteryEvent	
 	if (cmd.batteryLevel == 0xFF) {
 		batteryEvent = [name: "battery", value:1, unit: "%", descriptionText: "Low Battery Alert. Change now!", deviceType:"ZWV", zwaveOriginalMessage:cmd.format()]
 	} else {
-		batteryEvent = [name: "battery", value:cmd.batteryLevel, unit: "%", descriptionText: "Battery level report.", deviceType:"ZWV", zwaveOriginalMessage:cmd.format()]
+		batteryEvent = [name: "battery", value:cmd.batteryLevel, unit: "%", descriptionText: "Battery level report.", deviceType:"ZWV", zwaveOriginalMessage:(cmd.format())]
 	}
 	batteryDevices.each{ it -> it.sendEvent ( batteryEvent)}	
+	
 }
 
 void batteryTools_refreshBattery() {

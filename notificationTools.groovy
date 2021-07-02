@@ -7,7 +7,7 @@ library (
         namespace: "zwaveTools",
         documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
 		version: "0.0.1",
-		dependencies: "",
+		dependencies: "zwaveTools.hubTools",
 		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/notificationTools.groovy"
 )
 //////////////////////////////////////////////////////////////////////
@@ -16,11 +16,8 @@ library (
 
 void	notificationTools_refresh(ep = null ) {
 	Map specifiedNotifications = thisDeviceDataRecord?.endpoints.get((ep ?: 0) as Integer)?.get("notifications")
-	log.debug "specifiedNotifications are ${specifiedNotifications}"
 	if (specifiedNotifications)
 	{ 
-		log.debug "using the specifiedNotifications to refresh"
-
 		specifiedNotifications.each{type, events ->
 				performRefresh(type, events, ep)
 				}
@@ -38,35 +35,37 @@ void performRefresh(type, events, ep)
 	}
 }
 
+List<Integer> getNotificationTypesList(def cmd) {
+	List<Integer> notificationTypes = []
+	
+	if (cmd.smoke)				notificationTypes += 1 // Smoke
+	if (cmd.co)					notificationTypes += 2 // CO
+	if (cmd.co2)				notificationTypes += 3 // CO2
+	if (cmd.heat)				notificationTypes += 4 // Heat
+	if (cmd.water)				notificationTypes += 5 // Water
+	if (cmd.accessControl) 		notificationTypes += 6 // Access Control
+	if (cmd.burglar)			notificationTypes += 7 // Burglar
+	if (cmd.powerManagement)	notificationTypes += 8 // Power Management
+	if (cmd.system)				notificationTypes += 9 // System
+	if (cmd.emergency)			notificationTypes += 10 // Emergency Alarm
+	if (cmd.clock)				notificationTypes += 11 // Clock
+	if (cmd.appliance)			notificationTypes += 12 // Appliance
+	if (cmd.homeHealth)			notificationTypes += 13 // Home Health
+	if (cmd.siren)				notificationTypes += 14 // Siren
+	if (cmd.waterValve)			notificationTypes += 15 // Water Valve
+	if (cmd.weatherAlarm)		notificationTypes += 16 // Weather Alarm
+	if (cmd.irrigation)			notificationTypes += 17 // Irrigation
+	if (cmd.gasAlarm)			notificationTypes += 18 // Gas Alarm
+	if (cmd.pestControl)		notificationTypes += 19 // Pest Control
+	if (cmd.lightSensor)		notificationTypes += 20 // Light Sensor
+	if (cmd.waterQuality)		notificationTypes += 21 // Water Quality
+	if (cmd.homeMonitoring)		notificationTypes += 22 // Home Monitoring
+}
+
 void zwaveEvent(hubitat.zwave.commands.notificationv8.NotificationSupportedReport report, ep = null )
 { 
-	if (logEnable) {
-		log.debug "Device ${device.displayName}: Received a NotificationSupportedReport: ${report} for endpoint ${ep ?: 0}."
-	}
-	
-	List<Integer> notificationTypes = []
-	if (report.smoke)				{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:1), ep) } // Smoke
-	if (report.co)					{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:2), ep) }  // CO
-	if (report.co2)					{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:3), ep) }  // CO2
-	if (report.heat)				{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:4), ep) }  // Heat
-	if (report.water)				{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:5), ep) }  // Water
-	if (report.accessControl) 		{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:6), ep) }  // Access Control
-	if (report.burglar)				{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:7), ep) }  // Burglar
-	if (report.powerManagement)		{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:8), ep) }  // Power Management
-	if (report.system)				{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:9), ep) }  // System
-	if (report.emergency)			{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:10), ep) }  // Emergency Alarm
-	if (report.clock)				{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:11), ep) }  // Clock
-	if (report.appliance)			{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:12), ep) } // Appliance
-	if (report.homeHealth)			{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:13), ep) }  // Home Health
-	if (report.siren)				{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:14), ep) }  // Siren
-	if (report.waterValve)			{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:15), ep) }  // Water Valve
-	if (report.weatherAlarm)		{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:16), ep) }  // Weather Alarm
-	if (report.irrigation)			{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:17), ep) } // Irrigation
-	if (report.gasAlarm)			{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:18), ep) } // Gas Alarm
-	if (report.pestControl)			{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:19), ep) }  // Pest Control
-	if (report.lightSensor)			{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:20), ep) } // Light Sensor
-	if (report.waterQuality)		{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:21), ep) }  // Water Quality
-	if (report.homeMonitoring)		{ sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:22), ep) }  // Home Monitoring
+	getNotificationTypesList(report).each{it -> 
+			sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:(it as Integer)), ep)}
 }
 
 void zwaveEvent(hubitat.zwave.commands.notificationv8.EventSupportedReport cmd, ep = null )
@@ -218,7 +217,7 @@ void zwaveEvent(hubitat.zwave.commands.notificationv8.NotificationReport cmd, ep
 	Map thisEvent = getFormattedZWaveNotificationEvent(cmd)
 
 	if ( ! thisEvent ) { 
-		if ( logEnable ) log.debug "Device ${device.displayName}: Received an unhandled report ${cmd} for endpoint ${ep}." 
+		if ( logEnable ) log.debug "Device ${device.displayName}: Received an unhandled notification report ${cmd} for endpoint ${ep ?: 0}." 
 	} else { 
 		Boolean targetNotified = false
 		targetDevices.each {

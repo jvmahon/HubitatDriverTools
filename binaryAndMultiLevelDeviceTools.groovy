@@ -2,7 +2,7 @@ library (
         base: "driver",
         author: "jvm33",
         category: "zwave",
-        description: "Handle Interactions with the Hubitat Hub",
+        description: "Handles Events for Switches, Dimmers, Fans, Window Shades ",
         name: "binaryAndMultiLevelDeviceTools",
         namespace: "zwaveTools",
         documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
@@ -60,20 +60,20 @@ void sendZwaveValue(Map params = [value: null , duration: null , ep: null ] )
 	}
 }
 
-void zwaveEvent(hubitat.zwave.commands.switchbinaryv2.SwitchBinaryReport cmd, ep = null)
+void zwaveEvent(hubitat.zwave.commands.switchbinaryv2.SwitchBinaryReport cmd, ep = null )
 {
-	com.hubitat.app.DeviceWrapper targetDevice = getTargetDeviceByEndPoint(ep)
-
-	if (! targetDevice.hasAttribute("switch")) log.error "Device ${targetDevice.displayName}: received a Switch Binary Report for a device that does not have a switch attribute."
-	
-	String priorSwitchState = targetDevice.currentValue("switch")
 	String newSwitchState = ((cmd.value > 0) ? "on" : "off")
+	Map switchEvent = [name: "switch", value: newSwitchState, descriptionText: "Switch set", type: "physical"]
+	switchEvent += [deviceType:"ZWV", zwaveOriginalMessage:cmd.format()]
 	
-    if (priorSwitchState != newSwitchState) // Only send the state report if there is a change in switch state!
-	{
-		targetDevice.sendEvent(	name: "switch", value: newSwitchState, descriptionText: "Switch set", type: "physical")
-		if (txtEnable) log.info "Device ${targetDevice.displayName} set to ${newSwitchState}."
+	List <com.hubitat.app.DeviceWrapper> targetDevices = getTargetDeviceListByEndPoint(ep)?.findAll{it -> it.hasAttribute("switch")}
+	
+	targetDevices.each { thisTarget -> 
+		thisTarget.sendEvent(switchEvent)
+		if (txtEnable) log.info "Device ${thisTarget.displayName} set to ${newSwitchState}."
 	}
+	
+	if (targetDevices.is( null )) log.error "Device ${device.displayName}: received a Switch Binary Report for a device that does not have a switch attribute. Endpoint ${ep ?: 0}."
 }
 
 void zwaveEvent(hubitat.zwave.commands.switchmultilevelv4.SwitchMultilevelReport cmd, ep = null) { processSwitchReport(cmd, ep) }
@@ -85,7 +85,7 @@ void processSwitchReport(cmd, ep)
 		
 		if (thisTarget.hasAttribute("position")) 
 		{ 
-			thisTarget.sendEvent( name: "position", value: (cmd.value == 99 ? 100 : cmd.value) , unit: "%", descriptionText: "Position set", type: "physical" )
+			thisTarget.sendEvent( name: "position", value: (cmd.value == 99 ? 100 : cmd.value) , unit: "%", descriptionText: "Position set", type: "physical", deviceType:"ZWV", zwaveOriginalMessage:cmd.format() )
 		}
 		if (thisTarget.hasAttribute("windowShade"))
 		{
@@ -96,7 +96,7 @@ void processSwitchReport(cmd, ep)
 				case 99:  positionDescription = "open" ; break
 				default : positionDescription = "partially open" ; break
 			}
-			thisTarget.sendEvent( name: "windowShade", value: positionDescription, descriptionText: "Window Shade position set.", type: "physical" )	
+			thisTarget.sendEvent( name: "windowShade", value: positionDescription, descriptionText: "Window Shade position set.", type: "physical", deviceType:"ZWV", zwaveOriginalMessage:cmd.format() )	
 		}
 
 		if (thisTarget.hasAttribute("level") || thisTarget.hasAttribute("switch") ) // Switch or a fan
@@ -118,16 +118,16 @@ void processSwitchReport(cmd, ep)
 
 			if (thisTarget.hasAttribute("switch"))
 			{
-				thisTarget.sendEvent(	name: "switch", value: newSwitchState, descriptionText: "Switch state set", type: "physical" )
+				thisTarget.sendEvent(	name: "switch", value: newSwitchState, descriptionText: "Switch state set", type: "physical" , deviceType:"ZWV", zwaveOriginalMessage:cmd.format())
 				if (txtEnable) log.info "Device ${thisTarget.displayName} set to ${newSwitchState}."
 			}
 			if (thisTarget.hasAttribute("speed")) 
 			{
-				thisTarget.sendEvent( name: "speed", value: levelToSpeed(targetLevel), descriptionText: "Speed set", type: "physical" )
+				thisTarget.sendEvent( name: "speed", value: levelToSpeed(targetLevel), descriptionText: "Speed set", type: "physical", deviceType:"ZWV", zwaveOriginalMessage:cmd.format() )
 			}
 			if (thisTarget.hasAttribute("level") && (targetLevel != 0 )) // Only handle on values 1-99 here. If device was turned off, that would be handle in the switch state block above.
 			{
-				thisTarget.sendEvent( name: "level", value: targetLevel, descriptionText: "Level set", unit:"%", type: "physical" )
+				thisTarget.sendEvent( name: "level", value: targetLevel, descriptionText: "Level set", unit:"%", type: "physical", deviceType:"ZWV", zwaveOriginalMessage:cmd.format() )
 				if (txtEnable) log.info "Device ${thisTarget.displayName} level set to ${targetLevel}%"		
 			}
 		}
@@ -216,11 +216,9 @@ void startLevelChange(direction, cd = null ){
 	Integer ep = cd ? (cd.deviceNetworkId.split("-ep")[-1] as Integer) : null
 	
     Integer upDown = (direction == "down") ? 1 : 0
-	log.debug "Reached calculation of upDown"
 	
 	def sendMe = zwave.switchMultilevelV1.switchMultilevelStartLevelChange(upDown: upDown, ignoreStartLevel: 1, startLevel: 0)
 	
-	log.debug "Sendme is ${sendMe}"
     sendSupervised(sendMe, ep)
 }
 

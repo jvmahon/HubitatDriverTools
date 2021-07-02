@@ -2,7 +2,7 @@ library (
         base: "driver",
         author: "jvm33",
         category: "zwave",
-        description: "Endpoint Support Functions",
+        description: "Tools to manage device parameters and other device-specific data.",
         name: "deviceManagementTools",
         namespace: "zwaveTools",
         documentationLink: "https://github.com/jvmahon/HubitatDriverTools",

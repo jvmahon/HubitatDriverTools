@@ -2,12 +2,12 @@ library (
         base: "driver",
         author: "jvm33",
         category: "zwave",
-        description: "A set of tools to handle devices that sleep",
+        description: "A set of tools to set up and manage data stored in a global field.",
         name: "globalDataTools",
         namespace: "zwaveTools",
         documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
 		version: "0.0.1",
-		dependencies: "(none)",
+		dependencies: "none",
 		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/globalDataTools.groovy"
 )
 import java.util.concurrent.* 

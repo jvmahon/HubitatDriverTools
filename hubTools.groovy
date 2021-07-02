@@ -7,7 +7,7 @@ library (
         namespace: "zwaveTools",
         documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
 		version: "0.0.1",
-		dependencies: "(none)",
+		dependencies: "none",
 		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/hubTools.groovy"
 )
 

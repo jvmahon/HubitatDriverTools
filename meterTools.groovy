@@ -2,12 +2,12 @@ library (
         base: "driver",
         author: "jvm33",
         category: "zwave",
-        description: "Handles Zwave Notifications",
+        description: "Tools to Handle Zwave Meter Reports and Refreshes",
         name: "meterTools",
         namespace: "zwaveTools",
         documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
 		version: "0.0.1",
-		dependencies: "",
+		dependencies: "zwaveTools.hubTools",
 		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/meterTools.groovy"
 )
 //////////////////////////////////////////////////////////////////////
@@ -17,19 +17,19 @@ library (
 void	meterTools_refresh(ep = null ) {
 	// To make driver more generic, if meter type isn't known, then ask the device
 	List specifiedScales = thisDeviceDataRecord?.endpoints.get((ep ?: 0) as Integer)?.metersSupported
-	if (logEnable) log.debug "Refreshing a meter with scales ${specifiedScales}"
 	if (specifiedScales)
 	{ 
-		meterRefresh(specifiedScales, ep)
+		meterTools_refreshScales(specifiedScales, ep)
 	}	else  {
+		if (logEnable) log.debug "Device ${device.displayName}: Meter scales not stored. Gettting meter endpoint ${ep ?: 0} scales from device before performing refresh."
+
 		sendUnsupervised(zwave.meterV6.meterSupportedGet(), ep)
 	}
 }
 
-// Next function is not currently used! 
 void meterTools_refreshScales( List supportedScales, ep = null ) 
 { // meterSupported is a List of supported scales - e.g., [2, 5, 6]]
-	if (logEnable) log.debug "Refreshing a meter with scales ${supportedScales}"
+	if (logEnable) log.debug "Device ${device.displayName}: Refreshing meter endpoint ${ep ?: 0} with scales ${supportedScales}"
 
 	supportedScales.each{ scaleValue ->
 		if ((scaleValue as Integer) <= 6) {
@@ -40,29 +40,36 @@ void meterTools_refreshScales( List supportedScales, ep = null )
 	}
 }
 
-void zwaveEvent(hubitat.zwave.commands.meterv6.MeterSupportedReport report, ep = null )
-{ 
-    if ((report.meterType as Integer) != 1 ){
-		log.warn "Device ${device.displayName}: Received a meter support type of ${report.meterType} which is not processed by this code. Endpoint ${ep ?: 0}"
-		return null
-	}
-	
-	List<Integer> scaleList = []
+List<Integer> getMeterScalesAsList(hubitat.zwave.commands.meterv6.MeterSupportedReport report){
 
-	if (( report.scaleSupported & 0b00000001 ) as Boolean ) { scaleList.add(0) } // kWh
-	if (( report.scaleSupported & 0b00000010 ) as Boolean ) { scaleList.add(1) } // kVAh
-	if (( report.scaleSupported & 0b00000100 ) as Boolean ) { scaleList.add(2) } // Watts
-	if (( report.scaleSupported & 0b00001000 ) as Boolean ) { scaleList.add(3) } // PulseCount
-	if (( report.scaleSupported & 0b00010000 ) as Boolean ) { scaleList.add(4) } // Volts
-	if (( report.scaleSupported & 0b00100000 ) as Boolean ) { scaleList.add(5) } // Amps
-	if (( report.scaleSupported & 0b01000000 ) as Boolean ) { scaleList.add(6) } // PowerFactor
+	
+	List<Integer> returnScales = []
+	if (( report.scaleSupported & 0b00000001 ) as Boolean ) { returnScales.add(0) } // kWh
+	if (( report.scaleSupported & 0b00000010 ) as Boolean ) { returnScales.add(1) } // kVAh
+	if (( report.scaleSupported & 0b00000100 ) as Boolean ) { returnScales.add(2) } // Watts
+	if (( report.scaleSupported & 0b00001000 ) as Boolean ) { returnScales.add(3) } // PulseCount
+	if (( report.scaleSupported & 0b00010000 ) as Boolean ) { returnScales.add(4) } // Volts
+	if (( report.scaleSupported & 0b00100000 ) as Boolean ) { returnScales.add(5) } // Amps
+	if (( report.scaleSupported & 0b01000000 ) as Boolean ) { returnScales.add(6) } // PowerFactor
 
 	if ((( report.scaleSupported & 0b10000000 ) as Boolean ) && report.moreScaleTypes) {
-		if (( report.scaleSupportedBytes[1] & 0b00000001 ) as Boolean) { scaleList.add(7)} // kVar
-		if (( report.scaleSupportedBytes[1] & 0b00000010 ) as Boolean) { scaleList.add(8)} // kVarh
+		if (( report.scaleSupportedBytes[1] & 0b00000001 ) as Boolean) { returnScales.add(7)} // kVar
+		if (( report.scaleSupportedBytes[1] & 0b00000010 ) as Boolean) { returnScales.add(8)} // kVarh
 	}
+	return returnScales
+}
+
+void zwaveEvent(hubitat.zwave.commands.meterv6.MeterSupportedReport cmd, ep = null )
+{ 
+
+    if ((cmd.meterType as Integer) != 1 ){
+		log.warn "Device ${device.displayName}: Received a meter support type of ${cmd.meterType} which is not processed by this code. Endpoint ${ep ?: 0}."
+		return null
+	}
+	List<Integer> scaleList = getMeterScalesAsList(cmd)
+	
 	thisDeviceDataRecord.endpoints.get((ep ?: 0) as Integer).put("metersSupported", scaleList) // Store in the device record so you don't have to ask device again!
-	meterRefresh(scaleList, ep)
+	meterTools_refreshScales(scaleList, ep)
 }
 
 Map getFormattedZWaveMeterReportEvent(def cmd)

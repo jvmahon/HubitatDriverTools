@@ -20,11 +20,11 @@ void sensorTools_refresh(ep = null ) {
 
 }
 void	binarySensorRefresh(ep = null ) {
-	log.debug "Device ${device}: binarySensorRefresh function is not implemented."
+	log.warn "Device ${device}: binarySensorRefresh function is not implemented."
 }
 
 void multilevelSensorRefresh(ep) {
-	log.debug "Device ${device}: multilevelSensorRefresh function is not implemented."
+	log.warn "Device ${device}: multilevelSensorRefresh function is not implemented."
 }
 
 Map getFormattedZWaveSensorBinaryEvent(def cmd)
