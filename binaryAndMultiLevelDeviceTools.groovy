@@ -5,8 +5,41 @@ library (
         description: "Handle Interactions with the Hubitat Hub",
         name: "binaryAndMultiLevelDeviceTools",
         namespace: "zwaveTools",
-        documentationLink: "https://github.com/jvmahon/HubitatDriverTools"
+        documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
+		version: "0.0.1",
+		dependencies: "",
+		librarySource:""
 )
+////    Send Simple Z-Wave Commands to Device  ////	
+
+void binaryAndMultiLevelDeviceTools_refresh() {
+		if (record.classes.contains(0x25)) 		sendUnsupervised(zwave.switchBinaryV1.switchBinaryGet(), ep)
+		if (record.classes.contains(0x26)) 		sendUnsupervised(zwave.switchMultilevelV4.switchMultilevelGet(), ep)
+}
+void sendZwaveValue(Map params = [value: null , duration: null , ep: null ] )
+{
+	Integer newValue = Math.max(Math.min(params.value, 99),0)
+	Map endpointData = getThisDeviceDataRecord().get("endpoints")
+	Map thisEndpoint = (endpointData.get( (params.ep ?: 0) as String) ?: endpointData.get( (params.ep ?: 0) as Integer))
+	List deviceClasses = thisEndpoint.classes
+
+	if ( !(0..100).contains(params.value) ) {
+	log.warn "Device ${}: in function sendZwaveValue() received a value ${params.value} that is out of range. Valid range 0..100. Using value of ${newValue}."
+	}
+	
+	if (deviceClasses.contains(0x26)) { // Multilevel  type device
+		if (! params.duration.is( null) ) sendSupervised(zwave.switchMultilevelV4.switchMultilevelSet(value: newValue, dimmingDuration:params.duration), params.ep)	
+			else sendSupervised(zwave.switchMultilevelV1.switchMultilevelSet(value: newValue), params.ep)
+	} else if (deviceClasses.contains(0x25)) { // Switch Binary Type device
+		sendSupervised(zwave.switchBinaryV1.switchBinarySet(switchValue: newValue ), params.ep)
+	} else if (deviceClasses.contains(0x20)) { // Basic Set Type device
+		log.warn "Device ${targetDevice.displayName}: Using Basic Set to turn on device. A more specific command class should be used!"
+		sendSupervised(zwave.basicV1.basicSet(value: newValue ), params.ep)
+	} else {
+		log.error "Device ${device.displayName}: Error in function sendZwaveValue(). Device does not implement a supported class to control the device!.${ep ? " Endpoint # is: ${params.ep}." : ""}"
+		return
+	}
+}
 
 void zwaveEvent(hubitat.zwave.commands.switchbinaryv2.SwitchBinaryReport cmd, ep = null)
 {
@@ -24,7 +57,10 @@ void zwaveEvent(hubitat.zwave.commands.switchbinaryv2.SwitchBinaryReport cmd, ep
 	}
 }
 
-void zwaveEvent(hubitat.zwave.commands.switchmultilevelv4.SwitchMultilevelReport cmd, ep = null) { processSwitchReport(cmd, ep) }
+// void zwaveEvent(hubitat.zwave.commands.switchmultilevelv1.SwitchMultilevelReport cmd, ep = null) { processSwitchReport(cmd, ep) }
+// void zwaveEvent(hubitat.zwave.commands.switchmultilevelv2.SwitchMultilevelReport cmd, ep = null) { processSwitchReport(cmd, ep) }
+// void zwaveEvent(hubitat.zwave.commands.switchmultilevelv3.SwitchMultilevelReport cmd, ep = null) { processSwitchReport(cmd, ep) }
+// void zwaveEvent(hubitat.zwave.commands.switchmultilevelv4.SwitchMultilevelReport cmd, ep = null) { processSwitchReport(cmd, ep) }
 void zwaveEvent(hubitat.zwave.commands.basicv2.BasicReport cmd, ep = null) { processSwitchReport(cmd, ep) }
 void processSwitchReport(cmd, ep)
 {

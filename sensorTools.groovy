@@ -5,13 +5,19 @@ library (
         description: "Handle Binary and MultiLevel Sensors",
         name: "sensorTools",
         namespace: "zwaveTools",
-        documentationLink: "https://github.com/jvmahon/HubitatDriverTools"
+        documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
+		version: "0.0.1",
+		dependencies: "zwaveTools.endpointTools",
+		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/sensorTools.groovy"
 )
 
 //////////////////////////////////////////////////////////////////////
 //////        Handle   Binary Sensor     ///////
 //////////////////////////////////////////////////////////////////////
+void sensorTools_refresh() {
+	log.debug "Device ${device}: sensorTools_refresh function is not implemented."
 
+}
 void	refreshBinarySensor(ep = null ) {
 	log.debug "Device ${device}: refreshBinarySensor function is not implemented."
 }

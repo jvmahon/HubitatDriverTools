@@ -5,8 +5,28 @@ library (
         description: "Handle Interactions with the Hubitat Hub",
         name: "hubTools",
         namespace: "zwaveTools",
-        documentationLink: "https://github.com/jvmahon/HubitatDriverTools"
+        documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
+		version: "0.0.1",
+		dependencies: "",
+		librarySource:""
 )
+
+void sendInitialCommand() {
+	// If a device uses 'Supervision', then following a restart, code doesn't know the last sessionID that was sent to 
+	// the device, so to reset that, send a command twice at startup.
+	if (device.hasAttribute("switch") && (device.currentValue("switch") == "off")) {
+		sendZwaveValue(value:0)
+		sendZwaveValue(value:0)
+	} else if ( device.hasAttribute("switch") && (device.currentValue("switch") == "on")) {
+		if (device.hasAttribute("level")) { 
+			sendZwaveValue(value:(device.currentValue("level") as Integer ))
+			sendZwaveValue(value:(device.currentValue("level") as Integer ))
+		} else {
+			sendZwaveValue(value:99)
+			sendZwaveValue(value:99)
+		}
+	}
+}
 
 
 ////    Z-Wave Message Parsing   ////

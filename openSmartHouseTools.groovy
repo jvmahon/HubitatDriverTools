@@ -5,8 +5,40 @@ library (
         description: "Tools for Interacting with the OpenSmartHouse.org database",
         name: "openSmarthouseTools",
         namespace: "zwaveTools",
-        documentationLink: "https://github.com/jvmahon/HubitatDriverTools"
+        documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
+		version: "0.0.1",
+		dependencies: "",
+		librarySource:""
 )
+
+Map reparseDeviceData(deviceData = null )
+{
+	// When data is stored in the state.deviceRecord it can lose its original data types, so need to restore after reading the data froms state.
+	// This is only done during the startup / initialize routine and results are stored in a global variable, so it is only done for the first device of a particular model.
+
+	if (deviceData.is( null )) return null
+	Map reparsed = [formatVersion: null , fingerprints: null , classVersions: null ,endpoints: null , deviceInputs: null ]
+
+	reparsed.formatVersion = deviceData.formatVersion as Integer
+	
+	if (deviceData.endpoints) {
+		reparsed.endpoints = deviceData.endpoints.collectEntries{k, v -> [(k as Integer), (v)] }
+	} else {
+		List<Integer> endpoint0Classes = getDataValue("inClusters")?.split(",").collect{ hexStrToUnsignedInt(it) as Integer }
+						endpoint0Classes += getDataValue("secureInClusters")?.split(",").collect{ hexStrToUnsignedInt(it) as Integer }
+		if (endpoint0Classes.contains(0x60))
+			{
+				log.error "Device ${device.displayName}: Error in function reparseDeviceData. Missing endpoint data for a multi-endpoint device. This usually occurs if there is a locally stored data record which does not properly specify the endpoint data. This device may still function, but only for the root device."
+			}
+		reparsed.endpoints = [0:[classes:(endpoint0Classes)]]
+	}
+	
+	reparsed.deviceInputs = deviceData.deviceInputs?.collectEntries{ k, v -> [(k as Integer), (v)] }
+	reparsed.fingerprints = deviceData.fingerprints?.collect{ it -> [manufacturer:(it.manufacturer as Integer), deviceId:(it.deviceId as Integer),  deviceType:(it.deviceType as Integer), name:(it.name)] }
+	if (deviceData.classVersions) reparsed.classVersions = deviceData.classVersions?.collectEntries{ k, v -> [(k as Integer), (v as Integer)] }
+	if (logEnable) "Device ${device.displayName}: Reparsed data is ${reparsed}"
+	return reparsed
+}
 
 
 Map getSpecificRecord(id)

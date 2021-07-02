@@ -5,13 +5,16 @@ library (
         description: "Handles Zwave Notifications",
         name: "notificationTools",
         namespace: "zwaveTools",
-        documentationLink: "https://github.com/jvmahon/HubitatDriverTools"
+        documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
+		version: "0.0.1",
+		dependencies: "",
+		librarySource:""
 )
 //////////////////////////////////////////////////////////////////////
 //////        Handle   Notifications     ///////
 //////////////////////////////////////////////////////////////////////
 
-void	refreshNotifications(ep = null ) {
+void	notificationTools_refresh(ep = null ) {
 	Map specifiedNotifications = thisDeviceDataRecord?.endpoints.get((ep ?: 0) as Integer)?.get("notifications")
 	log.debug "specifiedNotifications are ${specifiedNotifications}"
 	if (specifiedNotifications)

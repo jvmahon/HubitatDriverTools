@@ -5,8 +5,14 @@ library (
         description: "Handles Zwave Notifications",
         name: "centralSceneTools",
         namespace: "zwaveTools",
-        documentationLink: "https://github.com/jvmahon/HubitatDriverTools"
+        documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
+		version: "0.0.1",
+		dependencies: "(none)",
+		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/centralSceneTools.groovy"
 )
+import java.util.concurrent.* 
+import groovy.transform.Field
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////                  Central Scene Processing          ////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -16,7 +22,7 @@ library (
 // Hubitat should not generated repreated "held" messages in response to a refresh, so inhibit those
 // Since the concurrentHashMap is @Field static -- its data structure is common to all devices using this
 // Driver, therefore you have to key it using the device.deviceNetworkId to get the value for a particuarl device.
-@Field static  ConcurrentHashMap centralSceneButtonState = new ConcurrentHashMap<String, String>(128)
+@Field static  ConcurrentHashMap centralSceneButtonState = new ConcurrentHashMap<String, String>()
 
 String getCentralSceneButtonState(Integer button) { 
  	String key = "${device.deviceNetworkId}.Button.${button}"

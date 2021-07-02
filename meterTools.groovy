@@ -5,13 +5,16 @@ library (
         description: "Handles Zwave Notifications",
         name: "meterTools",
         namespace: "zwaveTools",
-        documentationLink: "https://github.com/jvmahon/HubitatDriverTools"
+        documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
+		version: "0.0.1",
+		dependencies: "",
+		librarySource:""
 )
 //////////////////////////////////////////////////////////////////////
 //////                         Handle  Meters                  ///////
 //////////////////////////////////////////////////////////////////////
 
-void	refreshMeters(ep = null ) {
+void	meterTools_refresh(ep = null ) {
 	// To make driver more generic, if meter type isn't known, then ask the device
 	List specifiedScales = thisDeviceDataRecord?.endpoints.get((ep ?: 0) as Integer)?.metersSupported
 	if (logEnable) log.debug "Refreshing a meter with scales ${specifiedScales}"
@@ -24,7 +27,7 @@ void	refreshMeters(ep = null ) {
 }
 
 // Next function is not currently used! 
-void meterRefresh ( List supportedScales, ep = null ) 
+void meterTools_refreshScales( List supportedScales, ep = null ) 
 { // meterSupported is a List of supported scales - e.g., [2, 5, 6]]
 	if (logEnable) log.debug "Refreshing a meter with scales ${supportedScales}"
 
