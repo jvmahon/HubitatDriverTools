@@ -36,7 +36,7 @@ String setCentralSceneButtonState(Integer button, String state) {
 }
 
 void zwaveEvent(hubitat.zwave.commands.centralscenev3.CentralSceneSupportedReport  cmd) {
-	sendCCEvent([name:"numberOfButtons", value: cmd.supportedScenes])
+	sendCCEvent([name:"numberOfButtons", value: cmd.supportedScenes, deviceType:"ZWV", zwaveOriginalMessage:cmd.format()])
 }
 
 void sendCCEvent(Map thisEvent){

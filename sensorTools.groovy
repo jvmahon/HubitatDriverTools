@@ -14,16 +14,17 @@ library (
 //////////////////////////////////////////////////////////////////////
 //////        Handle   Binary Sensor     ///////
 //////////////////////////////////////////////////////////////////////
-void sensorTools_refresh() {
-	log.debug "Device ${device}: sensorTools_refresh function is not implemented."
+void sensorTools_refresh(ep = null ) {
+	binarySensorRefresh(ep)
+	multilevelSensorRefresh(ep)
 
 }
-void	refreshBinarySensor(ep = null ) {
-	log.debug "Device ${device}: refreshBinarySensor function is not implemented."
+void	binarySensorRefresh(ep = null ) {
+	log.debug "Device ${device}: binarySensorRefresh function is not implemented."
 }
 
-void performBinarySensorRefresh(type, events, ep) {
-	log.debug "Device ${device}: performBinarySensorRefresh function is not implemented."
+void multilevelSensorRefresh(ep) {
+	log.debug "Device ${device}: multilevelSensorRefresh function is not implemented."
 }
 
 Map getFormattedZWaveSensorBinaryEvent(def cmd)
@@ -59,7 +60,9 @@ Map getFormattedZWaveSensorBinaryEvent(def cmd)
 				]
 				
 		].get(cmd.sensorType as Integer)?.get(cmd.sensorValue as Integer)
-		return returnEvent
+		
+		if (returnEvent.is( null ) ) return null
+		return returnEvent + [deviceType:"ZWV", zwaveOriginalMessage:cmd.format()]
 }
 
 void zwaveEvent(hubitat.zwave.commands.sensorbinaryv2.SensorBinaryReport cmd, ep = null )
@@ -108,10 +111,9 @@ Map getFormattedZWaveSensorMultilevelReportEvent(def cmd)
 		80:[name: "temperature", value: null , unit: "°${temperatureScale}", descriptionText:"Defrost temperature"],	
 	].get(cmd.sensorType as Integer)
 
-	if (tempReport)
-	{
+	if (tempReport) {
 		tempReport.value = convertTemperatureIfNeeded(cmd.scaledMeterValue, (((cmd.scale as Integer) == 0) ? "C" : "F"), 2)
-		returntempReport
+		return tempReport + [deviceType:"ZWV", zwaveOriginalMessage:cmd.format()]
 	}
 	
 	Map otherSensorReport = [
@@ -136,7 +138,11 @@ Map getFormattedZWaveSensorMultilevelReportEvent(def cmd)
 		67000:[name: "pH", value: cmd.scaledMeterValue, unit: "pH"],
 	].get((cmd.sensorType * 1000 + cmd.scale) as Integer)	
 	
-	return otherSensorReport
+	if (otherSensorReport) { 
+		return otherSensorReport + [deviceType:"ZWV", zwaveOriginalMessage:cmd.format()]
+	}
+	
+	return null
 }
 
 void zwaveEvent(hubitat.zwave.commands.sensormultilevelv11.SensorMultilevelReport cmd, ep = null )
@@ -147,14 +153,14 @@ void zwaveEvent(hubitat.zwave.commands.sensormultilevelv11.SensorMultilevelRepor
 	if ( ! thisEvent ) { 
 		if ( logEnable ) log.debug "Device ${device.displayName}: Received an unhandled report ${cmd} for endpoint ${ep}." 
 	} else { 
-		Boolean targetNotified = false
+		Boolean AnyTargetNotified = false
 		targetDevices.each {
 			if (it.hasAttribute(thisEvent.name)) { 
 				it.sendEvent(thisEvent) 
-				targetNotified = true
+				AnyTargetNotified = true
 			}
 		}
-		if (! targetNotified) {
+		if (! AnyTargetNotified) {
 				log.warn "Device ${device.displayName}: Device does not support attribute ${thisEvent.name}, endpoint ${ep?:0}, Zwave report: ${cmd}."
 			}
 	}

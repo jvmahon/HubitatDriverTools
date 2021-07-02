@@ -81,7 +81,7 @@ void zwaveEvent(hubitat.zwave.commands.notificationv8.EventSupportedReport cmd, 
 
 Map getFormattedZWaveNotificationEvent(def cmd)
 {
-	Map returnEvent =
+	Map notificationEvent =
 		[ 	1:[ // Smoke
 				0:[	
 					1:[name:"smoke" , value:"clear", descriptionText:"Smoke detected (location provided) status Idle."],
@@ -198,17 +198,17 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 				
 		].get(cmd.notificationType as Integer)?.get(cmd.event as Integer)
 
-		if (returnEvent.is( null )) return null
+		if (notificationEvent.is( null )) return null
 		
 		if ((cmd.event == 0) && (cmd.eventParametersLength == 1)) { // This is for clearing events.
-				return returnEvent.get(cmd.eventParameter[0] as Integer)
+				return notificationEvent.get(cmd.eventParameter[0] as Integer) + ([deviceType:"ZWV", zwaveOriginalMessage:cmd.format()])
 		}
 		
 		if (cmd.eventParametersLength > 1) { // This is unexpected! None of the current notifications use this.
 			log.error "In function getZWaveNotificationEvent(), received command with eventParametersLength of unexpected size."
 			return null
 		} 
-		return returnEvent
+		return notificationEvent + [deviceType:"ZWV", zwaveOriginalMessage:cmd.format()]
 }
 
 void zwaveEvent(hubitat.zwave.commands.notificationv8.NotificationReport cmd, ep = null )

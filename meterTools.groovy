@@ -105,11 +105,12 @@ Map getFormattedZWaveMeterReportEvent(def cmd)
 	
 	if (cmd.scaledPreviousMeterValue) 
 		{
-			meterReport.put("previousValue", (cmd.scaledPreviousMeterValue) )
 			String reportText = meterReport.descriptionText + " Prior value: ${cmd.scaledPreviousMeterValue}"
-			meterReport.put("descriptionText", reportText)
+			meterReport += [previousValue:(cmd.scaledPreviousMeterValue), descriptionText:reportText]
 		}
 		
+	meterReport += [deviceType:"ZWV", zwaveOriginalMessage:cmd.format()]
+
 	return meterReport
 }
 
