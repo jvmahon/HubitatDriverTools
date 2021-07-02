@@ -50,7 +50,7 @@ Map getSpecificRecord(id)
 			}
 }
 
-Map OpenSmarthouseCreateDeviceDataRecord()
+Map openSmarthouseCreateDeviceDataRecord()
 {
 	Map firstQueryRecord = getOpenSmartHouseData();
 	
