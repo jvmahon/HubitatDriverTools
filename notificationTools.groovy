@@ -83,12 +83,12 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 	Map notificationEvent =
 		[ 	1:[ // Smoke
 				0:[	
-					1:[name:"smoke" , value:"clear", descriptionText:"Smoke detected (location provided) status Idle."],
-					2:[name:"smoke" , value:"clear", descriptionText:"Smoke detector status Idle."],
-					4:[name:"consumableStatus " , value:"good", descriptionText:"Replacement (cleared)."],				
-					5:[name:"consumableStatus " , value:"good", descriptionText:"Replacement (cleared)."],				
-					7:[name:"consumableStatus" , value:"good", descriptionText:"Periodic Maintenance Not Due"],				
-					8:[name:"consumableStatus" , value:"good", descriptionText:"No Dust in device - clear."],
+						1:[name:"smoke" , value:"clear", descriptionText:"Smoke detected (location provided) status Idle."],
+						2:[name:"smoke" , value:"clear", descriptionText:"Smoke detector status Idle."],
+						4:[name:"consumableStatus " , value:"good", descriptionText:"Replacement (cleared)."],				
+						5:[name:"consumableStatus " , value:"good", descriptionText:"Replacement (cleared)."],				
+						7:[name:"consumableStatus" , value:"good", descriptionText:"Periodic Maintenance Not Due"],				
+						8:[name:"consumableStatus" , value:"good", descriptionText:"No Dust in device - clear."],
 					], 
 				1:[name:"smoke" , value:"detected", descriptionText:"Smoke detected (location provided)."], 
 				2:[name:"smoke" , value:"detected", descriptionText:"Smoke detected."],
@@ -99,31 +99,61 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 				],
 			2:[ // CO
 				0:[
-					1:[name:"carbonMonoxide" , value:"clear", descriptionText:"Carbon Monoxide status."],
-					2:[name:"carbonMonoxide" , value:"clear", descriptionText:"Carbon Monoxide status."],	
-					4:[name:"consumableStatus " , value:"good", descriptionText:"Replacement (cleared)."],				
-					5:[name:"consumableStatus " , value:"good", descriptionText:"Replacement (cleared)."],				
-					7:[name:"consumableStatus" , value:"good", descriptionText:"Maintenance required cleared, periodic inspection."],				
+						1:[name:"carbonMonoxide" , value:"clear", descriptionText:"Carbon Monoxide status."],
+						2:[name:"carbonMonoxide" , value:"clear", descriptionText:"Carbon Monoxide status."],	
+						4:[name:"consumableStatus " , value:"good", descriptionText:"Replacement (cleared)."],				
+						5:[name:"consumableStatus " , value:"good", descriptionText:"Replacement (cleared)."],				
+						7:[name:"consumableStatus" , value:"good", descriptionText:"Maintenance required cleared, periodic inspection."],				
 					], 
 				1:[name:"carbonMonoxide" , value:"detected", descriptionText:"Carbon Monoxide detected (location provided)."], 
-				2:[name:"carbonMonoxide" , value:"detected", descriptionText:"Carbon Monoxide detected."]
+				2:[name:"carbonMonoxide" , value:"detected", descriptionText:"Carbon Monoxide detected."],
+				4:[name:"consumableStatus " , value:"replace", descriptionText:"Replacement required (End-of-Life)."],				
+				5:[name:"consumableStatus" , value:"maintenance_required", descriptionText:"Maintenance required, periodic inspection."],				
+				7:[name:"consumableStatus" , value:"maintenance_required", descriptionText:"Maintenance required, dust in device."],
 				],
-			2:[ // CO2
+			3:[ // CO2
 				0:[
-					1:[name:"carbonDioxideDetected" , value:"clear", descriptionText:"Carbon Dioxide status."],
-					2:[name:"carbonDioxideDetected" , value:"clear", descriptionText:"Carbon Dioxide status."],	
-					4:[name:"consumableStatus " , value:"good", descriptionText:"Replacement (cleared)."],				
-					5:[name:"consumableStatus " , value:"good", descriptionText:"Replacement (cleared)."],				
-					7:[name:"consumableStatus" , value:"good", descriptionText:"Maintenance required cleared, periodic inspection."],				
+						1:[name:"carbonDioxideDetected" , value:"clear", descriptionText:"Carbon Dioxide status."],
+						2:[name:"carbonDioxideDetected" , value:"clear", descriptionText:"Carbon Dioxide status."],	
+						4:[name:"consumableStatus " , value:"good", descriptionText:"Replacement (cleared)."],				
+						5:[name:"consumableStatus " , value:"good", descriptionText:"Replacement (cleared)."],				
+						7:[name:"consumableStatus" , value:"good", descriptionText:"Maintenance (cleared)."],				
 					], 
 				1:[name:"carbonDioxideDetected" , value:"detected", descriptionText:"Carbon Dioxide detected (location provided)."], 
-				2:[name:"carbonDioxideDetected" , value:"detected", descriptionText:"Carbon Dioxide detected."]
-				],					
+				2:[name:"carbonDioxideDetected" , value:"detected", descriptionText:"Carbon Dioxide detected."],
+				4:[name:"consumableStatus " , value:"replace", descriptionText:"Replacement required (End-of-Life)."],				
+				5:[name:"consumableStatus" , value:"maintenance_required", descriptionText:"Maintenance required, periodic inspection."],				
+				7:[name:"consumableStatus" , value:"maintenance_required", descriptionText:"Maintenance required, dust in device."],
+				],
+			4:[ // Heat Alarm - requires custom attribute heatAlarm
+				0:[
+						1:[name:"heatAlarm" , value:"normal", descriptionText:"Heat Alarm Notification, Status Normal."],
+						2:[name:"heatAlarm" , value:"normal", descriptionText:"Heat Alarm Notification, Status Normal."],
+						5:[name:"heatAlarm " , value:"normal", descriptionText:"Heat Alarm Notification, Status Normal."],
+						6:[name:"heatAlarm " , value:"normal", descriptionText:"Heat Alarm Notification, Status Normal."],
+						8:[name:"consumableStatus " , value:"good", descriptionText:"Replacement required (End-of-Life)."],				
+						10:[name:"consumableStatus" , value:"good", descriptionText:"Maintenance (cleared)"],				
+						11:[name:"consumableStatus" , value:"good", descriptionText:"Maintenance (cleared)"],
+						12:[name:"heatAlarm " , value:"normal", descriptionText:"Heat Alarm Notification, Status Normal."],
+						13:[name:"heatAlarm " , value:"normal", descriptionText:"Heat Alarm Notification, Status Normal."],	
+				], 
+				1:[name:"heatAlarm" , value:"overheat", descriptionText:"Overheat detected, Location Provided."],
+				2:[name:"heatAlarm" , value:"overheat", descriptionText:"Overheat detected, Unknown Location."],
+				3:[name:"heatAlarm " , value:"rapidRise", descriptionText:"Rapid Temperature Rise detected, Location Provided."],
+				4:[name:"heatAlarm " , value:"rapidRise", descriptionText:"Rapid Temperature Rise detected, Unknown Location."],				
+				5:[name:"heatAlarm " , value:"underheat", descriptionText:"Underheat detected, Location Provided."],
+				6:[name:"heatAlarm " , value:"underheat", descriptionText:"Underheat detected, Unknown Location."],
+				8:[name:"consumableStatus " , value:"replace", descriptionText:"Replacement required (End-of-Life)."],				
+				10:[name:"consumableStatus" , value:"maintenance_required", descriptionText:"Maintenance required, periodic inspection."],				
+				11:[name:"consumableStatus" , value:"maintenance_required", descriptionText:"Maintenance required, dust in device."],,	
+				12:[name:"heatAlarm " , value:"rapidFall", descriptionText:"Rapid Temperature Fall detected, Location Provided."],
+				13:[name:"heatAlarm " , value:"rapidFall", descriptionText:"Rapid Temperature Fall detected, Unknown Location."],				
+				],				
 			5:[ // Water
 				0:[
-					1:[name:"water" , value:"dry", descriptionText:"Water Alarm Notification, Status Dry."],
-					2:[name:"water" , value:"dry", descriptionText:"Water Alarm Notification, Status Dry."],
-					5:[name:"filterStatus " , value:"normal", descriptionText:"Water filter good."],				
+						1:[name:"water" , value:"dry", descriptionText:"Water Alarm Notification, Status Dry."],
+						2:[name:"water" , value:"dry", descriptionText:"Water Alarm Notification, Status Dry."],
+						5:[name:"filterStatus " , value:"normal", descriptionText:"Water filter good."],				
 
 				], 
 				1:[name:"water" , value:"wet", descriptionText:"Water leak detected (location provided)."], 
@@ -165,9 +195,21 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 				8:[name:"motion" , value:"active", descriptionText:"Motion detected."],
 				9:[name:"tamper" , value:"detected", descriptionText:"Tampering, device moved"]
 				],
+			12:[ //  Gas Alarm
+				0:[	 // These events "clear" a sensor.	
+						1:[name:"naturalGas" , value:"clear", descriptionText:"Combustible gas (cleared) (location provided)"], 	
+						2:[name:"naturalGas" , value:"clear", descriptionText:"Combustible gas  (cleared) "], 
+						5:[name:"naturalGas" , value:"clear", descriptionText:"Gas detector test completed."], 	
+						6:[name:"consumableStatus" , value:"good", descriptionText:"Gas detector (good)"],
+					], 
+				1:[name:"naturalGas" , value:"detected", descriptionText:"Combustible gas detected (location provided)"], 	
+				2:[name:"naturalGas" , value:"detected", descriptionText:"Combustible gas detected"], 
+				5:[name:"naturalGas" , value:"tested", descriptionText:"Gas detector test"], 	
+				6:[name:"consumableStatus" , value:"replace", descriptionText:"Gas detector, replacement required"],
+				],				
 			14:[ // Siren
 				0:[
-					1:[name:"alarm" , value:"off", descriptionText:"Alarm Siren Off."]
+						1:[name:"alarm" , value:"off", descriptionText:"Alarm Siren Off."]
 					], 
 				1:[name:"alarm" , value:"siren", descriptionText:"Alarm Siren On."]
 				], 
@@ -188,8 +230,8 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 				],				
 			22:[ // Presence
 				0:[
-					1:[name:"presence" , value:"not present", descriptionText:"Home not occupied"],
-					2:[name:"presence" , value:"not present", descriptionText:"Home not occupied"]
+						1:[name:"presence" , value:"not present", descriptionText:"Home not occupied"],
+						2:[name:"presence" , value:"not present", descriptionText:"Home not occupied"]
 					], 
 				1:[name:"presence" , value:"present", descriptionText:"Home occupied (location provided)"],  
 				2:[name:"presence" , value:"present", descriptionText:"Home occupied"]

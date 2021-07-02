@@ -11,7 +11,8 @@ library (
 		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/hubTools.groovy"
 )
 
-
+import java.util.concurrent.* 
+import groovy.transform.Field
 
 ////    Z-Wave Message Parsing   ////
 void parse(String description) {

@@ -27,3 +27,22 @@ Boolean isPendingCommands(){
 
 Boolean setWakePeriod(){
 }
+
+void zwaveEvent(hubitat.zwave.commands.wakeupv3.WakeUpIntervalCapabilitiesReport cmd) {
+
+log.debug "Received WakeUpIntervalCapabilitiesReport message: ${cmd}"
+}
+
+void zwaveEvent(hubitat.zwave.commands.wakeupv3.WakeUpIntervalReport cmd) {
+log.debug "Received WakeUpIntervalReport message: ${cmd}"
+
+}
+
+void zwaveEvent(hubitat.zwave.commands.wakeupv3.WakeUpNotification cmd) {
+log.debug "Received WakeUpNotification message: ${cmd}"
+
+}
+
+void sendNoMoreInfo() {
+	sendUnsupervised(zwave.wakeUpV2.wakeUpNoMoreInformation())
+}
