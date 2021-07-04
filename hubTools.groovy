@@ -119,8 +119,11 @@ void sendSupervised(hubitat.zwave.Command cmd, ep = null ) {
 }
 
 void sendUnsupervised(hubitat.zwave.Command cmd, ep = null ) { 
-	def sendThisCommand = secure(cmd, ep)
-	sendHubCommand(new hubitat.device.HubAction( sendThisCommand, hubitat.device.Protocol.ZWAVE)) 
+	if (ep) {
+		sendHubCommand(new hubitat.device.HubAction( zwave.multiChannelV4.multiChannelCmdEncap(sourceEndPoint: 0, bitAddress: 0, res01:0, destinationEndPoint: ep).encapsulate(cmd), hubitat.device.Protocol.ZWAVE)) 
+	} else {
+		sendHubCommand(new hubitat.device.HubAction( zwaveSecureEncap(cmd), hubitat.device.Protocol.ZWAVE)) 
+	}
 }
 	
 

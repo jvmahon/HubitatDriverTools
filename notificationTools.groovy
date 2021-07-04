@@ -145,7 +145,7 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 				6:[name:"heatAlarm " , value:"underheat", descriptionText:"Underheat detected, Unknown Location."],
 				8:[name:"consumableStatus " , value:"replace", descriptionText:"Replacement required (End-of-Life)."],				
 				10:[name:"consumableStatus" , value:"maintenance_required", descriptionText:"Maintenance required, periodic inspection."],				
-				11:[name:"consumableStatus" , value:"maintenance_required", descriptionText:"Maintenance required, dust in device."],,	
+				11:[name:"consumableStatus" , value:"maintenance_required", descriptionText:"Maintenance required, dust in device."],
 				12:[name:"heatAlarm " , value:"rapidFall", descriptionText:"Rapid Temperature Fall detected, Location Provided."],
 				13:[name:"heatAlarm " , value:"rapidFall", descriptionText:"Rapid Temperature Fall detected, Unknown Location."],				
 				],				
