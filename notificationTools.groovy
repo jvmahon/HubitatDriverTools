@@ -10,28 +10,46 @@ library (
 		dependencies: "zwaveTools.hubTools",
 		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/notificationTools.groovy"
 )
+/*
+Relevant Z-Wave standards
+SDS13713 = Silicon Labs Zwave Standard
+*/
 //////////////////////////////////////////////////////////////////////
 //////        Handle   Notifications     ///////
 //////////////////////////////////////////////////////////////////////
 
-void	notificationTools_refresh(ep = null ) {
-	Map specifiedNotifications = thisDeviceDataRecord?.endpoints.get((ep ?: 0) as Integer)?.get("notifications")
-	if (specifiedNotifications)
-	{ 
-		specifiedNotifications.each{type, events ->
-				performRefresh(type, events, ep)
-				}
-	}	else  {
-			log.debug "learning the Notifications to refresh"
-
-			sendUnsupervised(zwave.notificationV8.notificationSupportedGet(), ep)
+notificationTools_sendZwave(hubitat.zwave.Command cmd, ep = null ) { 
+	// This is a copy of sendUnsupervised from the zwaveTools.hubTools, but is copied here to remove library dependency.
+	if (ep) {
+		sendHubCommand(new hubitat.device.HubAction( zwave.multiChannelV4.multiChannelCmdEncap(sourceEndPoint: 0, bitAddress: 0, res01:0, destinationEndPoint: ep).encapsulate(cmd), hubitat.device.Protocol.ZWAVE)) 
+	} else {
+		sendHubCommand(new hubitat.device.HubAction( zwaveSecureEncap(cmd), hubitat.device.Protocol.ZWAVE)) 
 	}
 }
 
-void performRefresh(type, events, ep)
+Map<Integer,List> getStoredNotificationList(ep = null )
 {
+	return thisDeviceDataRecord?.endpoints.get((ep ?: 0) as Integer)?.get("notifications")
+}
+
+void	notificationTools_refresh(ep = null ) {
+	Map specifiedNotifications = getStoredNotificationList(ep)
+	if (specifiedNotifications)
+	{ 
+		specifiedNotifications.each{type, events ->
+				performRefreshByType(type, events, ep)
+				}
+	}	else  {
+		notificationTools_sendZwave(zwave.notificationV8.notificationSupportedGet(), ep)
+	}
+}
+
+void performRefreshByType(type, events, ep)
+{
+	// type is a single integer item corrensponding to Column B of zwave standard SDS13713
+	//	Events is a list of integers identifying the sub-events for the type. This correspondes to column G of zwave standard SDS13713.
 	events.each{ it ->
-		sendUnsupervised(zwave.notificationV8.notificationGet(v1AlarmType:0, event: (it as Integer), notificationType: type), ep)
+		notificationTools_sendZwave(zwave.notificationV8.notificationGet(v1AlarmType:0, event: (it as Integer), notificationType: type), ep)
 	}
 }
 
@@ -65,7 +83,7 @@ List<Integer> getNotificationTypesList(def cmd) {
 void zwaveEvent(hubitat.zwave.commands.notificationv8.NotificationSupportedReport report, ep = null )
 { 
 	getNotificationTypesList(report).each{it -> 
-			sendUnsupervised(zwave.notificationV8.eventSupportedGet(notificationType:(it as Integer)), ep)}
+			notificationTools_sendZwave(zwave.notificationV8.eventSupportedGet(notificationType:(it as Integer)), ep)}
 }
 
 void zwaveEvent(hubitat.zwave.commands.notificationv8.EventSupportedReport cmd, ep = null )
@@ -80,8 +98,9 @@ void zwaveEvent(hubitat.zwave.commands.notificationv8.EventSupportedReport cmd, 
 
 Map getFormattedZWaveNotificationEvent(def cmd)
 {
+	Date currentDate = new Date()
 	Map notificationEvent =
-		[ 	1:[ // Smoke
+		[ 	0x01:[ // Smoke
 				0:[	
 						1:[name:"smoke" , value:"clear", descriptionText:"Smoke detected (location provided) status Idle."],
 						2:[name:"smoke" , value:"clear", descriptionText:"Smoke detector status Idle."],
@@ -97,7 +116,7 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 				7:[name:"consumableStatus" , value:"maintenance_required", descriptionText:"Maintenance required, periodic inspection."],				
 				8:[name:"consumableStatus" , value:"maintenance_required", descriptionText:"Maintenance required, dust in device."],
 				],
-			2:[ // CO
+			0x02:[ // CO
 				0:[
 						1:[name:"carbonMonoxide" , value:"clear", descriptionText:"Carbon Monoxide status."],
 						2:[name:"carbonMonoxide" , value:"clear", descriptionText:"Carbon Monoxide status."],	
@@ -111,7 +130,7 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 				5:[name:"consumableStatus" , value:"maintenance_required", descriptionText:"Maintenance required, periodic inspection."],				
 				7:[name:"consumableStatus" , value:"maintenance_required", descriptionText:"Maintenance required, dust in device."],
 				],
-			3:[ // CO2
+			0x03:[ // CO2
 				0:[
 						1:[name:"carbonDioxideDetected" , value:"clear", descriptionText:"Carbon Dioxide status."],
 						2:[name:"carbonDioxideDetected" , value:"clear", descriptionText:"Carbon Dioxide status."],	
@@ -125,7 +144,7 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 				5:[name:"consumableStatus" , value:"maintenance_required", descriptionText:"Maintenance required, periodic inspection."],				
 				7:[name:"consumableStatus" , value:"maintenance_required", descriptionText:"Maintenance required, dust in device."],
 				],
-			4:[ // Heat Alarm - requires custom attribute heatAlarm
+			0x04:[ // Heat Alarm - requires custom attribute heatAlarm
 				0:[
 						1:[name:"heatAlarm" , value:"normal", descriptionText:"Heat Alarm Notification, Status Normal."],
 						2:[name:"heatAlarm" , value:"normal", descriptionText:"Heat Alarm Notification, Status Normal."],
@@ -149,7 +168,7 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 				12:[name:"heatAlarm " , value:"rapidFall", descriptionText:"Rapid Temperature Fall detected, Location Provided."],
 				13:[name:"heatAlarm " , value:"rapidFall", descriptionText:"Rapid Temperature Fall detected, Unknown Location."],				
 				],				
-			5:[ // Water
+			0x05:[ // Water	
 				0:[
 						1:[name:"water" , value:"dry", descriptionText:"Water Alarm Notification, Status Dry."],
 						2:[name:"water" , value:"dry", descriptionText:"Water Alarm Notification, Status Dry."],
@@ -161,7 +180,7 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 				5:[name:"filterStatus " , value:"replace", descriptionText:"Replace water filter (End-of-Life)."],				
 
 				],
-			6:[ // Access Control (Locks)
+			0x06:[ // Access Control (Locks)
 				0:[], 
 				1:[name:"lock" , value:"locked", descriptionText:"Manual lock operation"], 
 				2:[name:"lock" , value:"unlocked", descriptionText:"Manual unlock operation"], 
@@ -172,7 +191,7 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 				11:[name:"lock" , value:"unknown", descriptionText:"Lock jammed"], 				
 				254:[name:"lock" , value:"unknown", descriptionText:"Lock in unknown state"]
 				],
-			7:[ // Home Security
+			0x07:[ // Home Security
 				0:[	 // These events "clear" a sensor.	
 						1:[name:"contact" , value:"closed", descriptionText:"Contact sensor, closed (location provided)"], 
 						2:[name:"contact" , value:"closed", descriptionText:"Contact sensor, closed"], 					
@@ -195,7 +214,10 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 				8:[name:"motion" , value:"active", descriptionText:"Motion detected."],
 				9:[name:"tamper" , value:"detected", descriptionText:"Tampering, device moved"]
 				],
-			12:[ //  Gas Alarm
+			0x09:[ // System
+				5:[name:"heartbeat" , value:currentDate, descriptionText:"Last Heartbeat"]
+				], 				
+			0x12:[ //  Gas Alarm
 				0:[	 // These events "clear" a sensor.	
 						1:[name:"naturalGas" , value:"clear", descriptionText:"Combustible gas (cleared) (location provided)"], 	
 						2:[name:"naturalGas" , value:"clear", descriptionText:"Combustible gas  (cleared) "], 
@@ -207,28 +229,18 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 				5:[name:"naturalGas" , value:"tested", descriptionText:"Gas detector test"], 	
 				6:[name:"consumableStatus" , value:"replace", descriptionText:"Gas detector, replacement required"],
 				],				
-			14:[ // Siren
+			0x0E:[ // Siren
 				0:[
 						1:[name:"alarm" , value:"off", descriptionText:"Alarm Siren Off."]
 					], 
 				1:[name:"alarm" , value:"siren", descriptionText:"Alarm Siren On."]
 				], 
-			15:[ // Water Valve
+			0x0F:[ // Water Valve
 				0:[name:"valve" , value:( (cmd.event > 0 ) ? "open" : "closed"), descriptionText:"Valve Operation."], 
 				1:[name:"valve" , value:( (cmd.event > 0 ) ? "open" : "closed"), descriptionText:"Master Valve Operation."] 
 				], 
-			18:[ // Gas Detector
-				0:[		1:[name:"naturalGas" , value:"clear", descriptionText:"Combustible Gas state cleared (location provided)."],
-						2:[name:"naturalGas" , value:"clear", descriptionText:"Combustible Gas state cleared."],
-						3:[name:"naturalGas" , value:"clear", descriptionText:"Toxic gas state cleared (location provided)."],
-						4:[name:"naturalGas" , value:"clear", descriptionText:"Toxic gas state cleared."] 
-					], 
-				1:[name:"naturalGas" , value:"detected", descriptionText:"Combustible Gas Detected (location provided)"], 
-				2:[name:"naturalGas" , value:"detected", descriptionText:"Combustible Gas Detected"], 
-				3:[name:"naturalGas" , value:"detected", descriptionText:"Toxic Gas detected (location provided)."],
-				4:[name:"naturalGas" , value:"detected", descriptionText:"Toxic Gas detected."]
-				],				
-			22:[ // Presence
+	
+			0x16:[ // Home Monitoring
 				0:[
 						1:[name:"presence" , value:"not present", descriptionText:"Home not occupied"],
 						2:[name:"presence" , value:"not present", descriptionText:"Home not occupied"]
@@ -239,7 +251,10 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 				
 		].get(cmd.notificationType as Integer)?.get(cmd.event as Integer)
 
-		if (notificationEvent.is( null )) return null
+		if (notificationEvent.is( null )) 
+		{
+		return [name:"unhandledZwaveEvent", value:cmd.format(), deviceType:"ZWV", zwaveOriginalMessage:cmd.format()]
+		}
 		
 		if ((cmd.event == 0) && (cmd.eventParametersLength == 1)) { // This is for clearing events.
 				return notificationEvent.get(cmd.eventParameter[0] as Integer) + ([deviceType:"ZWV", zwaveOriginalMessage:cmd.format()])
@@ -258,8 +273,9 @@ void zwaveEvent(hubitat.zwave.commands.notificationv8.NotificationReport cmd, ep
 
 	Map thisEvent = getFormattedZWaveNotificationEvent(cmd)
 
-	if ( ! thisEvent ) { 
+	if ( thisEvent.name == "unhandledZwaveEvent" ) { 
 		if ( logEnable ) log.debug "Device ${device.displayName}: Received an unhandled notification report ${cmd} for endpoint ${ep ?: 0}." 
+		// Consider future addition to send unhandledZwaveEvent on the event stream.
 	} else { 
 		Boolean targetNotified = false
 		targetDevices.each {
