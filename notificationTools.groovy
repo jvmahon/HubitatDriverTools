@@ -18,7 +18,7 @@ SDS13713 = Silicon Labs Zwave Standard
 //////        Handle   Notifications     ///////
 //////////////////////////////////////////////////////////////////////
 
-notificationTools_sendZwave(hubitat.zwave.Command cmd, ep = null ) { 
+void notificationTools_sendZwave(hubitat.zwave.Command cmd, ep = null ) { 
 	// This is a copy of sendUnsupervised from the zwaveTools.hubTools, but is copied here to remove library dependency.
 	if (ep) {
 		sendHubCommand(new hubitat.device.HubAction( zwave.multiChannelV4.multiChannelCmdEncap(sourceEndPoint: 0, bitAddress: 0, res01:0, destinationEndPoint: ep).encapsulate(cmd), hubitat.device.Protocol.ZWAVE)) 
@@ -269,7 +269,7 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 
 void zwaveEvent(hubitat.zwave.commands.notificationv8.NotificationReport cmd, ep = null )
 {
-	List<com.hubitat.app.DeviceWrapper> targetDevices = getTargetDeviceListByEndPoint(ep)
+	List<com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep)
 
 	Map thisEvent = getFormattedZWaveNotificationEvent(cmd)
 
