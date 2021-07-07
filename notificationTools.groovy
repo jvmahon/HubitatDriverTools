@@ -18,14 +18,6 @@ SDS13713 = Silicon Labs Zwave Standard
 //////        Handle   Notifications     ///////
 //////////////////////////////////////////////////////////////////////
 
-void notificationTools_sendZwave(hubitat.zwave.Command cmd, ep = null ) { 
-	// This is a copy of sendUnsupervised from the zwaveTools.hubTools, but is copied here to remove library dependency.
-	if (ep) {
-		sendHubCommand(new hubitat.device.HubAction( zwave.multiChannelV4.multiChannelCmdEncap(sourceEndPoint: 0, bitAddress: 0, res01:0, destinationEndPoint: ep).encapsulate(cmd), hubitat.device.Protocol.ZWAVE)) 
-	} else {
-		sendHubCommand(new hubitat.device.HubAction( zwaveSecureEncap(cmd), hubitat.device.Protocol.ZWAVE)) 
-	}
-}
 
 Map<Integer,List> getStoredNotificationList(ep = null )
 {
@@ -40,7 +32,7 @@ void	notificationTools_refresh(ep = null ) {
 				performRefreshByType(type, events, ep)
 				}
 	}	else  {
-		notificationTools_sendZwave(zwave.notificationV8.notificationSupportedGet(), ep)
+		basicZwaveSend(zwave.notificationV8.notificationSupportedGet(), ep)
 	}
 }
 
@@ -49,7 +41,7 @@ void performRefreshByType(type, events, ep)
 	// type is a single integer item corrensponding to Column B of zwave standard SDS13713
 	//	Events is a list of integers identifying the sub-events for the type. This correspondes to column G of zwave standard SDS13713.
 	events.each{ it ->
-		notificationTools_sendZwave(zwave.notificationV8.notificationGet(v1AlarmType:0, event: (it as Integer), notificationType: type), ep)
+		basicZwaveSend(zwave.notificationV8.notificationGet(v1AlarmType:0, event: (it as Integer), notificationType: type), ep)
 	}
 }
 
@@ -83,7 +75,7 @@ List<Integer> getNotificationTypesList(def cmd) {
 void zwaveEvent(hubitat.zwave.commands.notificationv8.NotificationSupportedReport report, ep = null )
 { 
 	getNotificationTypesList(report).each{it -> 
-			notificationTools_sendZwave(zwave.notificationV8.eventSupportedGet(notificationType:(it as Integer)), ep)}
+			basicZwaveSend(zwave.notificationV8.eventSupportedGet(notificationType:(it as Integer)), ep)}
 }
 
 void zwaveEvent(hubitat.zwave.commands.notificationv8.EventSupportedReport cmd, ep = null )
@@ -269,9 +261,13 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 
 void zwaveEvent(hubitat.zwave.commands.notificationv8.NotificationReport cmd, ep = null )
 {
+	if (userDefinedNotificationReportFilter) cmd = userDefinedNotificationReportFilter(cmd)
+	
 	List<com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep)
 
 	Map thisEvent = getFormattedZWaveNotificationEvent(cmd)
+	
+	if (userDefinedNotificationGeneratedEventFilter) thisEvent = userDefinedNotificationGeneratedEventFilter(thisEvent)
 
 	if ( thisEvent.name == "unhandledZwaveEvent" ) { 
 		if ( logEnable ) log.debug "Device ${device.displayName}: Received an unhandled notification report ${cmd} for endpoint ${ep ?: 0}." 

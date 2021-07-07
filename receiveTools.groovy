@@ -14,6 +14,7 @@ library (
 import java.util.concurrent.* 
 import groovy.transform.Field
 
+// create getUserParseMap() in driver to override.
 Map getDefaultParseMap () {
 	return [
 		0x20:2, // Basic Set
@@ -37,27 +38,42 @@ Map getDefaultParseMap () {
 }
 		
 ////    Z-Wave Message Parsing   ////
+// create userDefinedParseFilter to override
 void parse(String description) {
-		hubitat.zwave.Command cmd = zwave.parse(description, userParseMap ?: defaultParseMap)
+		hubitat.zwave.Command cmd = zwave.parse(description, (userParseMap ?: defaultParseMap))
+		if (userDefinedParseFilter) cmd = userDefinedParseFilter(cmd, description = null )
 		if (cmd) { zwaveEvent(cmd) }
+}
+
+String secure(hubitat.zwave.Command cmd, ep = null ){ 
+	if (ep) {
+		return zwaveSecureEncap(zwave.multiChannelV4.multiChannelCmdEncap(sourceEndPoint: 0, bitAddress: 0, res01:0, destinationEndPoint: ep).encapsulate(cmd))
+	} else {
+		return zwaveSecureEncap(cmd) 
+	}
+}
+
+// a simple unsupervised send with endpoint support
+void basicZwaveSend(hubitat.zwave.Command cmd, ep = null ) { 
+	sendHubCommand(new hubitat.device.HubAction( secure(cmd, ep), hubitat.device.Protocol.ZWAVE)) 
 }
 
 ////    Security Encapsulation   ////
 void zwaveEvent(hubitat.zwave.commands.securityv1.SecurityMessageEncapsulation cmd) {
-	hubitat.zwave.Command encapsulatedCommand = cmd.encapsulatedCommand( defaultParseMap )
+	hubitat.zwave.Command encapsulatedCommand = cmd.encapsulatedCommand( (userParseMap ?: defaultParseMap) )
     if (encapsulatedCommand) { zwaveEvent(encapsulatedCommand) }
 }
 
 ////    Multi-Channel Encapsulation   ////
 void zwaveEvent(hubitat.zwave.commands.multichannelv4.MultiChannelCmdEncap cmd) {
-    hubitat.zwave.Command  encapsulatedCommand = cmd.encapsulatedCommand(defaultParseMap)
+    hubitat.zwave.Command  encapsulatedCommand = cmd.encapsulatedCommand((userParseMap ?: defaultParseMap))
     if (encapsulatedCommand) { zwaveEvent(encapsulatedCommand, cmd.sourceEndPoint) }
 }
 
 
 // This handles a supervised message (a "get") received from the Z-Wave device //
 void zwaveEvent(hubitat.zwave.commands.supervisionv1.SupervisionGet cmd, ep = null ) {
-    hubitat.zwave.Command encapsulatedCommand = cmd.encapsulatedCommand(defaultParseMap)
+    hubitat.zwave.Command encapsulatedCommand = cmd.encapsulatedCommand((userParseMap ?: defaultParseMap))
 	
 	hubitat.zwave.Command confirmation = (new hubitat.zwave.commands.supervisionv1.SupervisionReport(sessionID: cmd.sessionID, reserved: 0, moreStatusUpdates: false, status: 0xFF, duration: 0))
 	

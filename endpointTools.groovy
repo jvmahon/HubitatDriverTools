@@ -61,8 +61,6 @@ List<com.hubitat.app.DeviceWrapper> getChildDeviceListByEndpoint(ep) {
 	return returnList
 }
 
-
-
 // Debugging Functions
 void showEndpointlDataRecord() {
 	// Debugging function - shows the entire concurrent @Field 'global' data record for all devices using a particular driver
