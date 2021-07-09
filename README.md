@@ -1,6 +1,10 @@
 # zwaveTools
 
-zwaveTools is a collection of Hubitat driver libraries. Consisting of:
+This is a very-early-stage rewrite of my driver set found here:https://github.com/jvmahon/HubitatCustom
+
+This is NOT YET READY for you to use!  Please check back at the end of July for updates.
+
+zwaveTools is a collection of Hubitat driver libraries. Consisting of device-independent library modules:
 
 ## Index
 1. **batteryTools** - A collection of tools for handling battery reports 
