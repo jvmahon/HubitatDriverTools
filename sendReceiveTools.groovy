@@ -123,7 +123,7 @@ Boolean ignoreSupervisionNoSupportCode()
 			[	manufacturer:12,  	deviceType:17479,	deviceId: 12342  	], // HomeSeer WD200 is buggy!
 			]
 			
-	if (userPoorSupervisionMap) {poorSupervisionSupport += userPoorSupervisionSupportMap}
+	if (userPoorSupervisionSupportMap) {poorSupervisionSupport += userPoorSupervisionSupportMap}
 	
     Map thisDevice =	poorSupervisionSupport.find{((it.manufacturer == mfr ) && (it.deviceId == deviceId ) && (it.deviceType == deviceType)) }
 	if (thisDevice && logEnable) log.warn "Device ${device.displayName}: This device is on the Poor Supervise Support list. Check manufacturer for a firmware update. Ignoring 'No Support' return codes."
@@ -136,6 +136,21 @@ Boolean getSuperviseThis() {
 		return (getDataValue("S2")?.toInteger() != null )
 }
 
+void advancedZwaveSend(hubitat.zwave.Command cmd, ep = null ) { 
+	List<String> superviseThese = [ "2501", // Switch Binary
+									"2601", "2604", "2605", //  Switch MultiLevel 
+									"7601", // Lock V1
+									"3305", // Switch Color Set									
+									]
+	if (userDefinedSupervisionList) superviseThese += userDefinedSupervisionList								
+	if (superviseThese.contains(cmd.CMD)) {
+		sendSupervised(cmd, ep)
+	} else {
+		sendUnsupervised(cmd, ep)
+	}
+}
+
+
 void sendSupervised(hubitat.zwave.Command cmd, ep = null ) { 
 	if (superviseThis) {
 		Integer thisSessionId = getNewSessionId()
@@ -145,8 +160,10 @@ void sendSupervised(hubitat.zwave.Command cmd, ep = null ) {
 		
 		commandStorage.put(thisSessionId, [command:cmd, endPoint:ep, attempt:1, sessionId:thisSessionId]) 
 		
-		basicZwaveSend(supervisedCommand, ep)		
-		runInMillis( (s2RetryPeriod ?: 2000), supervisionCheck)	
+		basicZwaveSend(supervisedCommand, ep)	
+		
+		Integer retryTime	=  Math.min( Math.max( (s2RetryPeriod ?: 2000), 500), 5000)
+		runInMillis( retryTime, supervisionCheck)	
 
 	} else {
 		basicZwaveSend(cmd, ep)
@@ -211,7 +228,8 @@ void supervisionCheck() {
 	ConcurrentHashMap tryAgain = supervisionSentCommands?.get(device.getDeviceNetworkId() as String)
 	tryAgain?.each{ thisSessionId, whatWasSent ->
 		
-		if (whatWasSent.attempt < (s2MaxRetries ?: 2) ) {
+		Integer retries = Math.min( Math.max( (s2MaxRetries ?: 2), 1), 5)
+		if (whatWasSent.attempt <  retries ) {
 			whatWasSent.attempt += 1
 			hubitat.zwave.Command  supervisedCommand = zwave.supervisionV1.supervisionGet(sessionID: thisSessionId, statusUpdates: true ).encapsulate(whatWasSent.command)
 			basicZwaveSend(supervisedCommand, whatWasSent.endPoint)	
@@ -221,3 +239,6 @@ void supervisionCheck() {
 		}
 	}
 }
+
+
+
