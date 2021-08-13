@@ -5,7 +5,7 @@ library (
         author: "jvm33",
         category: "zwave",
         description: "Database of Device Characteristics",
-        name: "ZwaveDeviceDatabase",
+        name: "zwaveDeviceDatabase",
         namespace: "zwaveTools",
         documentationLink: "https://github.com/jvmahon/HubitatDriverTools"
 )
@@ -33,7 +33,7 @@ Map getThisDeviceDatabaseRecord() {
 		endpoints:[
 				0:[ children:[[type:'Generic Component Motion Sensor', 'namespace':'hubitat', childName:"Motion Sensor"]],
 					classes:[80, 85, 89, 90, 94, 108, 112, 113, 114, 115, 122, 128, 133, 134, 135, 142, 159], 
-					notificationsSupported:[7:[3, 8], 8:[1, 5], 9:[4, 5]]]
+					notifications:[7:[3, 8], 8:[1, 5], 9:[4, 5]]]
 				],
 		deviceInputs:[
 			1:[ size:1,	category:"advanced", name:"1", title:"(1) Heartbeat Interval", description:"Number of minutes between heartbeats.", range:"1..70",  type:"number" ],
@@ -56,7 +56,7 @@ Map getThisDeviceDatabaseRecord() {
 	endpoints:[
 		0:[	children:[[type:'Generic Component Motion Sensor', 'namespace':'hubitat', childName:"Motion Sensor"]],
 			classes:[0, 32, 48, 85, 89, 90, 94, 108, 112, 113, 114, 115, 122, 128, 132, 133, 134, 152, 159], 
-			notificationsSupported:[7:[8, 9]]]
+			notifications:[7:[8, 9]]]
 		], 
 	deviceInputs:[
 		12:[size:1, name:'12', description:' 1 = low sensitivity and 8 = high sensitivity.', range:'1..8', title:'(12)  PIR sensor sensitivity', type:'number'], 
