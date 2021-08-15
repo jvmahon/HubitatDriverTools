@@ -7,7 +7,7 @@ library (
         namespace: "zwaveTools",
         documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
 		version: "0.0.1",
-		dependencies: "zwaveTools.hubTools",
+		dependencies: "zwaveTools.sendReceiveTools",
 		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/centralSceneTools.groovy"
 )
 import java.util.concurrent.* 
@@ -22,10 +22,10 @@ import groovy.transform.Field
 // Hubitat should not generated repreated "held" messages in response to a refresh, so inhibit those
 // Since the concurrentHashMap is @Field static -- its data structure is common to all devices using this
 // Driver, therefore you have to key it using the device.deviceNetworkId to get the value for a particuarl device.
-@Field static  ConcurrentHashMap centralSceneButtonState = new ConcurrentHashMap<String, String>()
+@Field static  ConcurrentHashMap centralSceneButtonState = new ConcurrentHashMap<String, String>(64, 0.75, 1)
 
 void centralSceneTools_initialize(){
-	sendUnsupervised(zwave.centralSceneV3.centralSceneSupportedGet())
+	advancedZwaveSend(zwave.centralSceneV3.centralSceneSupportedGet())
 }
 String getCentralSceneButtonState(Integer button) { 
  	String key = "${device.deviceNetworkId}.Button.${button}"
@@ -39,12 +39,10 @@ String setCentralSceneButtonState(Integer button, String state) {
 }
 
 void zwaveEvent(hubitat.zwave.commands.centralscenev3.CentralSceneSupportedReport  cmd) {
-	sendCCEvent([name:"numberOfButtons", value: cmd.supportedScenes, deviceType:"ZWV", zwaveOriginalMessage:cmd.format()])
+	sendEventToAll(event:[name:"numberOfButtons", value: cmd.supportedScenes])
 }
 
-void sendCCEvent(Map thisEvent){
-	rootAndAllChildDevices.findAll{it -> (alwaysSendCCEvent || it.hasAttribute(thisEvent.name) ) }.each{ child -> child.sendEvent(thisEvent) }
-}
+
 
 void doubleTap(button) 	{ multiTap(button, 2)	}
 void push(button) 		{ multiTap(button, 1) }
@@ -58,7 +56,7 @@ void multiTap(button, taps) {
 		sendCCEvent([name:"doubleTapped", value:button, type:"digital", isStateChange: true ])	
 	}
 
-    sendCCEvent([name:"multiTapButton", value:("${button}.${taps}" as Float), type:"physical", unit:"Button #.Tap Count", isStateChange: true ])		
+    sendEventToAll(event:[name:"multiTapButton", value:("${button}.${taps}" as Float), type:"physical", unit:"Button #.Tap Count", isStateChange: true ])		
 }
 
 void zwaveEvent(hubitat.zwave.commands.centralscenev3.CentralSceneNotification cmd)
@@ -81,7 +79,7 @@ void zwaveEvent(hubitat.zwave.commands.centralscenev3.CentralSceneNotification c
 	
 	event.descriptionText="${device.displayName}: Button #${cmd.sceneNumber}: ${tapDescription}"
 
-	sendCCEvent(event)
+	sendEventToAll(event:event)
 	
 	// Next code is for the custom attribute "multiTapButton".
 	Integer taps = [0:1, 3:2, 4:3, 5:4, 6:5].get(cmd.keyAttributes as Integer)
@@ -90,6 +88,6 @@ void zwaveEvent(hubitat.zwave.commands.centralscenev3.CentralSceneNotification c
 		event.name = "multiTapButton"
 		event.unit = "Button #.Tap Count"
 		event.value = ("${cmd.sceneNumber}.${taps}" as Float)
-		sendCCEvent(event)	
+		sendEventToAll(event:event)
 	} 
 }

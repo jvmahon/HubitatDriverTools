@@ -23,7 +23,7 @@ void processBatteryEvent(cmd)
 	} else {
 		batteryEvent = [name: "battery", value:cmd.batteryLevel, unit: "%", descriptionText: "Battery level report."]
 	}
-	SendEventToAll(event:batteryEvent, alwaysSend:["battery"])
+	sendEventToAll(event:batteryEvent, alwaysSend:["battery"])
 }
 
 void batteryTools_refreshBattery() {

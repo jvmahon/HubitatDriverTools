@@ -112,7 +112,7 @@ void sendEventToEndpoints(Map params = [ event: null , ep: null ,  sendEveryEven
 }
 
 
-void SendEventToAll(Map params = [ event: null , sendEveryEventType: false , addRootToEndpoint0: true ,  alwaysSend: null , neverSend: null ])
+void sendEventToAll(Map params = [ event: null , sendEveryEventType: false , addRootToEndpoint0: true ,  alwaysSend: null , neverSend: null ])
 {
 	List<String> supportedParams = ["event", "ep", "sendEveryEventType", "addRootToEndpoint0", "alwaysSend", "neverSend"]
 	if (! (params.every{ k, v ->  supportedParams.contains(k) } ) ) {
