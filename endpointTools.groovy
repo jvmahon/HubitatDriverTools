@@ -22,28 +22,39 @@ library (
 				],
 				
 */
+
+Map getDeviceRecord() {
+	dataRecordByProductType.get("deviceRecord", new ConcurrentHashMap(8, 0.75, 1)) // from globalDataTools
+}
+
 Map getFullEndpointRecord() {
-	dataRecordByProductType.get("endpoints", new ConcurrentHashMap()) // from globalDataTools
+	deviceRecord.get("endpoints", new ConcurrentHashMap(8, 0.75, 1)) // from globalDataTools
 }
 
 Map getThisEndpointData(ep) {
-	fullEndpointRecord.get((ep ?: 0 as Integer))
+	fullEndpointRecord.get((ep ?: 0 as Integer), [:])
 }
 
-Map getThisEndpointClasses(ep) {
-	thisEndpointData(ep).get("classes", new ConcurrentHashMap())
+List<Integer> getThisEndpointClasses(ep) {
+	List<Integer> rValue = getThisEndpointData(ep).get("classes", [])
+	
+	// If they don't exist and its endpoint 0, create them from the inClusters and secureInClusters data.
+	if ( ((ep as Integer) == 0) && (rValue.size() == 0 ) ) {
+			rValue = (getDataValue("inClusters")?.split(",").collect{ hexStrToUnsignedInt(it) as Integer }) + ( getDataValue("secureInClusters")?.split(",").collect{ hexStrToUnsignedInt(it) as Integer })
+	}
+	return rValue
 }
 
 Integer getEndpointCount(){
-	fullEndpointRecord.findAll({it.key != 0}).size()
+	fullEndpointRecord.findAll({it.key != 0}).size() ?: 0
 }
 
 Map<Integer,List> getEndpointNotificationsSupported(ep){
-	thisEndpointData(ep).get("notificationsSupported")
+	thisEndpointData(ep).get("notificationsSupported", [:])
 }
 
-List<Integer> getEndpointMetersSupported(ep){
-	thisEndpointData(ep).get("metersSupported")
+List<Integer> getEndpointMetersSupported( ep = null ){
+	thisEndpointData(ep).get("metersSupported", [])
 }
 
 // Get the endpoint number for a child device
@@ -53,17 +64,80 @@ Integer getChildEndpointNumber(com.hubitat.app.DeviceWrapper thisChild) {
 
 // Get List (possibly multiple) child device for a specific endpoint. Child devices can also be of the form '-ep000' 
 // Child devices associated with the root device end in -ep000
-List<com.hubitat.app.DeviceWrapper> getChildDeviceListByEndpoint(ep) {
-
+List<com.hubitat.app.DeviceWrapper> getChildDeviceListByEndpoint( ep ) {
 	List<com.hubitat.app.DeviceWrapper> returnList
-	returnList	= getChildDevices().findAll{ it -> (getEndpoint(it)  == ((ep ?: 0) as Integer))}
-	if ( (ep ?: 0) == 0 ) returnList += device 
+	returnList	= getChildDevices().findAll{ it -> (childEndpointNumber(it)  == ((ep ?: 0) as Integer))}
 	return returnList
+}
+
+void sendEventToEndpoints(Map params = [ event: null , ep: null ,  sendEveryEventType: false , addRootToEndpoint0: true ,  alwaysSend: null , neverSend: null ])
+{
+	List<String> supportedParams = ["event", "ep", "sendEveryEventType", "addRootToEndpoint0", "alwaysSend", "neverSend"]
+	if (! (params.every{ k, v ->  supportedParams.contains(k) } ) ) {
+		log.error "Error calling advancedSendEvent. Supported parameters are ${supportedParams}. Function was called with parameters: ${params.keySet()}"
+		return
+	}
+	
+	List<com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint((params.ep ?: 0) as Integer)
+	
+	// If endpoint is 0 or null and there were no child devices with a 0 endpoint, then return the root device as the child.
+	// || (params.addRootToEndpoint0 as Boolean)) && (params.ep as Integer < 1)  
+	
+	if ( ((params.ep ?: 0) == 0) && ((targetDevices.size() == 0 ) || (params.addRootToEndpoint0 as Boolean)) ) 
+		{
+			if (logEnable) log.debug "adding device to targetDevices"
+			targetDevices += device
+		}
+	
+	if ( params.event.name == "unhandledZwaveEvent" ) { 
+		if (sendEventNotHandledError) sendEventNotHandledError(params.event) // If this function is defined, it will receive the event to allow logging.
+	} else { 
+		Boolean targetNotified = false
+		targetDevices.each {
+			if (params.neverSend?.contains(params.event.name)) return
+		
+			if (it.hasAttribute(params.event.name) || (params.sendEveryEventType) || params.alwaysSend?.contains(params.event.name) ) { 
+				it.sendEvent(params.event) 
+				targetNotified = true
+			}
+		}
+		if (! targetNotified) {
+				if (sendEventNotHandledError) sendEventNotHandledError(params.event)
+			}
+	}
+}
+
+
+void SendEventToAll(Map params = [ event: null , sendEveryEventType: false , addRootToEndpoint0: true ,  alwaysSend: null , neverSend: null ])
+{
+	List<String> supportedParams = ["event", "ep", "sendEveryEventType", "addRootToEndpoint0", "alwaysSend", "neverSend"]
+	if (! (params.every{ k, v ->  supportedParams.contains(k) } ) ) {
+		log.error "Error calling advancedSendEvent. Supported parameters are ${supportedParams}. Function was called with parameters: ${params.keySet()}"
+		return
+	}
+	
+	List<com.hubitat.app.DeviceWrapper> targetDevices = getChildDevices() + device
+		
+	if ( params.event.name == "unhandledZwaveEvent" ) { 
+		if (sendEventNotHandledError) sendEventNotHandledError(params.event) // If this function is defined, it will receive the event to allow logging.
+	} else { 
+		Boolean targetNotified = false
+		targetDevices.each {
+			if (params.neverSend?.contains(params.event.name)) return
+		
+			if (it.hasAttribute(params.event.name) || (params.sendEveryEventType) || params.alwaysSend?.contains(params.event.name) ) { 
+				it.sendEvent(params.event) 
+				targetNotified = true
+			}
+		}
+		if (! targetNotified) {
+				if (sendEventNotHandledError) sendEventNotHandledError(params.event)
+			}
+	}
 }
 
 // Debugging Functions
 void showEndpointlDataRecord() {
 	// Debugging function - shows the entire concurrent @Field 'global' data record for all devices using a particular driver
-
 	log.debug "Endpoint Data record is ${fullEndpointRecord.inspect()}."
 }

@@ -16,14 +16,11 @@ library (
 
 void	meterTools_refresh(ep = null ) {
 	// To make driver more generic, if meter type isn't known, then ask the device
-	List specifiedScales = thisDeviceDataRecord?.endpoints.get((ep ?: 0) as Integer)?.metersSupported
-	if (specifiedScales)
-	{ 
+	List<Integer> specifiedScales = getEndpointMetersSupported(ep)
+	if (specifiedScales) { 
 		meterTools_refreshScales(specifiedScales, ep)
 	}	else  {
-		if (logEnable) log.debug "Device ${device.displayName}: Meter scales not stored. Gettting meter endpoint ${ep ?: 0} scales from device before performing refresh."
-
-		sendUnsupervised(zwave.meterV6.meterSupportedGet(), ep)
+		advancedZwaveSend(zwave.meterV6.meterSupportedGet(), ep)
 	}
 }
 
@@ -33,16 +30,14 @@ void meterTools_refreshScales( List supportedScales, ep = null )
 
 	supportedScales.each{ scaleValue ->
 		if ((scaleValue as Integer) <= 6) {
-			sendUnsupervised(zwave.meterV6.meterGet(scale: scaleValue), ep)
+			advancedZwaveSend(zwave.meterV6.meterGet(scale: scaleValue), ep)
 		} else {
-			sendUnsupervised(zwave.meterV6.meterGet(scale: 7, scale2: (scaleValue - 7) ), ep)
+			advancedZwaveSend(zwave.meterV6.meterGet(scale: 7, scale2: (scaleValue - 7) ), ep)
 		}
 	}
 }
 
 List<Integer> getMeterScalesAsList(hubitat.zwave.commands.meterv6.MeterSupportedReport report){
-
-	
 	List<Integer> returnScales = []
 	if (( report.scaleSupported & 0b00000001 ) as Boolean ) { returnScales.add(0) } // kWh
 	if (( report.scaleSupported & 0b00000010 ) as Boolean ) { returnScales.add(1) } // kVAh
@@ -123,22 +118,6 @@ Map getFormattedZWaveMeterReportEvent(def cmd)
 
 void zwaveEvent(hubitat.zwave.commands.meterv6.MeterReport cmd, ep = null )
 {
-	List<com.hubitat.app.DeviceWrapper> targetDevices = getTargetDeviceListByEndPoint(ep)
-
 	Map thisEvent = getFormattedZWaveMeterReportEvent(cmd)
-	if (logEnable) log.debug "Responding to a meter report ${cmd} with event ${thisEvent}"
-	if ( ! thisEvent ) { 
-		if ( logEnable ) log.debug "Device ${device.displayName}: Received an unhandled report ${cmd} for its endpoint ${ep}." 
-	} else { 
-		Boolean targetNotified = false
-		targetDevices.each {
-			if (it.hasAttribute(thisEvent.name)) { 
-				it.sendEvent(thisEvent) 
-				targetNotified = true
-			}
-		}
-		if (! targetNotified) {
-				log.warn "Device ${device.displayName}: Device does not support attribute ${thisEvent.name}, endpoint ${ep?:0}, Zwave report: ${cmd}."
-			}
-	}	
+	sendEventToEndpoints(event:thisEvent, ep:ep, alwaysSend:["heartbeat"])
 }

@@ -19,13 +19,8 @@ SDS13713 = Silicon Labs Zwave Standard
 //////////////////////////////////////////////////////////////////////
 
 
-Map<Integer,List> getStoredNotificationList(ep = null )
-{
-	return thisDeviceDataRecord?.endpoints.get((ep ?: 0) as Integer)?.get("notifications")
-}
-
 void	notificationTools_refresh(ep = null ) {
-	Map specifiedNotifications = getStoredNotificationList(ep)
+	Map specifiedNotifications = getEndpointNotificationsSupported(ep)
 	if (specifiedNotifications)
 	{ 
 		specifiedNotifications.each{type, events ->
@@ -82,10 +77,7 @@ void zwaveEvent(hubitat.zwave.commands.notificationv8.EventSupportedReport cmd, 
 {
 	// Build a map of the notifications supported by a device endpoint and store it in the endpoint data
 	List supportedEventsByType = cmd.supportedEvents.findAll{k, v -> ((v as Boolean) == true) }.collect{k, v -> (k as Integer) }
-	
-	Map thisEndpointNotifications = thisDeviceDataRecord?.endpoints.get((ep ?: 0) as Integer).get("notifications", [:])
-		
-	thisEndpointNotifications.put( (cmd.notificationType as Integer), supportedEventsByType)
+	getEndpointNotificationsSupported(ep).put( (cmd.notificationType as Integer), supportedEventsByType)
 }
 
 Map getFormattedZWaveNotificationEvent(def cmd)
@@ -261,27 +253,12 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 
 void zwaveEvent(hubitat.zwave.commands.notificationv8.NotificationReport cmd, ep = null )
 {
-	if (userDefinedNotificationReportFilter) cmd = userDefinedNotificationReportFilter(cmd)
+	if (userNotificationReportFilter) cmd = userNotificationReportFilter(cmd)
 	
-	List<com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep)
-
 	Map thisEvent = getFormattedZWaveNotificationEvent(cmd)
 	
-	if (userDefinedNotificationGeneratedEventFilter) thisEvent = userDefinedNotificationGeneratedEventFilter(thisEvent)
+	if (userNotificationEventFilter) thisEvent = userNotificationEventFilter(thisEvent)
 
-	if ( thisEvent.name == "unhandledZwaveEvent" ) { 
-		if ( logEnable ) log.debug "Device ${device.displayName}: Received an unhandled notification report ${cmd} for endpoint ${ep ?: 0}." 
-		// Consider future addition to send unhandledZwaveEvent on the event stream.
-	} else { 
-		Boolean targetNotified = false
-		targetDevices.each {
-			if (it.hasAttribute(thisEvent.name)) { 
-				it.sendEvent(thisEvent) 
-				targetNotified = true
-			}
-		}
-		if (! targetNotified) {
-				log.warn "Device ${device.displayName}: Device does not support attribute ${thisEvent.name}, endpoint ${ep?:0}, Zwave report: ${cmd}."
-			}
-	}
+	sendEventToEndpoints(event:thisEvent, ep:ep, alwaysSend:["heartbeat"])
+
 }

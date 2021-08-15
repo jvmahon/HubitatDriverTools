@@ -18,21 +18,16 @@ void zwaveEvent(hubitat.zwave.commands.batteryv2.BatteryReport cmd)  { processBa
 void zwaveEvent(hubitat.zwave.commands.batteryv3.BatteryReport cmd)  { processBatteryEvent(cmd) }
 void processBatteryEvent(cmd) 
 {
-	// In Z-Wave, battery is only reported for the 'root' device, but if there are child devices with a battery attribute, update them too!
-	
-	List<com.hubitat.app.DeviceWrapper> batteryDevices =  (getChildDevices() + device).findAll{it -> it.hasAttribute("battery")}
-	Map batteryEvent	
 	if (cmd.batteryLevel == 0xFF) {
 		batteryEvent = [name: "battery", value:1, unit: "%", descriptionText: "Low Battery Alert. Change now!", deviceType:"ZWV", zwaveOriginalMessage:cmd.format()]
 	} else {
-		batteryEvent = [name: "battery", value:cmd.batteryLevel, unit: "%", descriptionText: "Battery level report.", deviceType:"ZWV", zwaveOriginalMessage:(cmd.format())]
+		batteryEvent = [name: "battery", value:cmd.batteryLevel, unit: "%", descriptionText: "Battery level report."]
 	}
-	batteryDevices.each{ it -> it.sendEvent ( batteryEvent)}	
-	
+	SendEventToAll(event:batteryEvent, alwaysSend:["battery"])
 }
 
 void batteryTools_refreshBattery() {
-	if (isZwaveListening() ) { sendUnsupervised(zwave.batteryV1.batteryGet()) 
+	if (isZwaveListening() ) { advancedZwaveSend(zwave.batteryV1.batteryGet()) 
 		} else {
 		log.warn "Device ${device.displayName}: Called batteryRefresh on a non-listening node. Code should be updated to add the refresh to a pending command queue when the device wakes up!"
 		}

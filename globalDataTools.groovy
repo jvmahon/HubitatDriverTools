@@ -13,7 +13,7 @@ library (
 import java.util.concurrent.* 
 import groovy.transform.Field
 
-@Field static ConcurrentHashMap globalDataStorage = new ConcurrentHashMap(128)
+@Field static ConcurrentHashMap globalDataStorage = new ConcurrentHashMap(64, 0.75, 1)
 
 @Field static Integer dataRecordFormatVersion = 1
 
@@ -23,7 +23,7 @@ ConcurrentHashMap getDataRecordByProductType()
 	String deviceType = 	hubitat.helper.HexUtils.integerToHexString( device.getDataValue("deviceType").toInteger(), 2)
 	String deviceID = 		hubitat.helper.HexUtils.integerToHexString( device.getDataValue("deviceId").toInteger(), 2)
 	String productKey = "${manufacturer}:${deviceType}:${deviceID}"
-	ConcurrentHashMap dataRecord = globalDataStorage.get(productKey, new ConcurrentHashMap<String,ConcurrentHashMap>())
+	ConcurrentHashMap dataRecord = globalDataStorage.get(productKey, new ConcurrentHashMap<String,ConcurrentHashMap>(8, 0.75, 1))
 	return dataRecord
 }
 
