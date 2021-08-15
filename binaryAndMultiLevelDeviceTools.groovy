@@ -37,6 +37,7 @@ void binaryAndMultiLevelDeviceTools_refresh() {
 ////    Send Simple Z-Wave Commands to Device  ////	
 void sendZwaveValue(Map params = [value: null , duration: null , ep: null ] )
 {
+	log.debug "sendZwaveValue parameters ${params}"
 	Integer newValue = Math.max(Math.min(params.value, 99),0)
 	List<Integer> supportedClasses = getThisEndpointClasses(ep)
 
@@ -131,16 +132,16 @@ void componentOn(com.hubitat.app.DeviceWrapper cd){ on(cd:cd) }
 void on(Map params = [cd: null , duration: null , level: null ])
 {
 	Integer ep = getChildEndpointNumber(params.cd)
+	
 	sendEventToEndpoints(event:[name: "switch", value: "on", descriptionText: "Device turned off", type: "digital"] , ep:ep)
 
-	Integer targetLevel
+	Integer targetLevel = 100
 	if (params.level) {
 		targetLevel = (params.level as Integer) 
 	} else {
 		List<com.hubitat.app.DeviceWrapper> targets = getChildDeviceListByEndpoint(ep) + ( (ep == 0) ? device : null )
-		targetLevel = targets?.find{it.hasAttribute("level")}?.currentValue("level") as Integer
+		targetLevel = (targets?.find{it.hasAttribute("level")}?.currentValue("level") as Integer) ?: 100
 	}
-
 	targetLevel = Math.min(Math.max(targetLevel, 1), 100)
 			
 	sendEventToEndpoints(event:[name: "level", value: targetLevel, descriptionText: "Device level set", unit:"%", type: "digital"], ep:ep)

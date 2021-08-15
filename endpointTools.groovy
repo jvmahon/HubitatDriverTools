@@ -72,8 +72,6 @@ List<com.hubitat.app.DeviceWrapper> getChildDeviceListByEndpoint( ep ) {
 }
 
 
-
-
 void sendEventToEndpoints(Map params = [ event: null , ep: null ,  sendEveryEventType: false , addRootToEndpoint0: true ,  alwaysSend: null , neverSend: null ])
 {
 	List<String> supportedParams = ["event", "ep", "sendEveryEventType", "addRootToEndpoint0", "alwaysSend", "neverSend"]
@@ -87,10 +85,12 @@ void sendEventToEndpoints(Map params = [ event: null , ep: null ,  sendEveryEven
 	// If endpoint is 0 or null and there were no child devices with a 0 endpoint, then return the root device as the child.
 	// || (params.addRootToEndpoint0 as Boolean)) && (params.ep as Integer < 1)  
 	
-	if ( ((params.ep ?: 0) == 0) && ((targetDevices.size() == 0 ) || (params.addRootToEndpoint0 as Boolean)) ) 
-		{
-			if (logEnable) log.debug "adding device to targetDevices"
-			targetDevices += device
+	if ((params.ep as Integer) == 0)
+		{ 
+			if ( (params.addRootToEndpoint0) ? ((params.addRootToEndpoint0) as Boolean) : true )
+			{
+				targetDevices += device
+			}
 		}
 	
 	if ( params.event.name == "unhandledZwaveEvent" ) { 
@@ -110,7 +110,6 @@ void sendEventToEndpoints(Map params = [ event: null , ep: null ,  sendEveryEven
 			}
 	}
 }
-
 
 void sendEventToAll(Map params = [ event: null , sendEveryEventType: false , addRootToEndpoint0: true ,  alwaysSend: null , neverSend: null ])
 {
