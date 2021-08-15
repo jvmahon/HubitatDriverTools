@@ -61,33 +61,15 @@ Map getFormattedZWaveSensorBinaryEvent(def cmd)
 				
 		].get(cmd.sensorType as Integer)?.get(cmd.sensorValue as Integer)
 		
-		if (returnEvent.is( null ) ) return null
-		return returnEvent + [deviceType:"ZWV", zwaveOriginalMessage:cmd.format()]
+		return returnEvent
 }
 
 void zwaveEvent(hubitat.zwave.commands.sensorbinaryv2.SensorBinaryReport cmd, ep = null )
 {
-	List<com.hubitat.app.DeviceWrapper> targetDevices = getTargetDeviceListByEndPoint(ep)
-
-	if (logEnable) log.debug "Device ${device.displayName}: Received SensorBinaryReport: ${cmd} for endpoint ${ep ?: 0}."
-	
 	Map thisEvent = getFormattedZWaveSensorBinaryEvent(cmd)
-	
-	if ( ! thisEvent ) { 
-		if ( logEnable ) log.debug "Device ${targetDevice.displayName}: Received an unhandled report ${cmd} for endpoint ${ep}." 
-	} else { 
-		Boolean targetNotified = false
-		targetDevices.each {
-			if (it.hasAttribute(thisEvent.name)) { 
-				it.sendEvent(thisEvent) 
-				targetNotified = true
-			}
-		}
-		if (! targetNotified) {
-				log.warn "Device ${device.displayName}: Device does not support attribute ${thisEvent.name}, endpoint ${ep?:0}, Zwave report: ${cmd}."
-			}
-	}
+	sendEventToEndpoints(event:thisEvent, ep:ep)
 }
+
 //////////////////////////////////////////////////////////////////////
 //////        Handle  Multilevel Sensor       ///////
 //////////////////////////////////////////////////////////////////////
@@ -138,30 +120,11 @@ Map getFormattedZWaveSensorMultilevelReportEvent(def cmd)
 		67000:[name: "pH", value: cmd.scaledMeterValue, unit: "pH"],
 	].get((cmd.sensorType * 1000 + cmd.scale) as Integer)	
 	
-	if (otherSensorReport) { 
-		return otherSensorReport + [deviceType:"ZWV", zwaveOriginalMessage:cmd.format()]
-	}
-	
-	return null
+	return otherSensorReport
 }
 
 void zwaveEvent(hubitat.zwave.commands.sensormultilevelv11.SensorMultilevelReport cmd, ep = null )
 {
-	List<com.hubitat.app.DeviceWrapper> targetDevices = getTargetDeviceListByEndPoint(ep)
 	Map thisEvent = getFormattedZWaveSensorMultilevelReportEvent(cmd)
-		
-	if ( ! thisEvent ) { 
-		if ( logEnable ) log.debug "Device ${device.displayName}: Received an unhandled report ${cmd} for endpoint ${ep}." 
-	} else { 
-		Boolean AnyTargetNotified = false
-		targetDevices.each {
-			if (it.hasAttribute(thisEvent.name)) { 
-				it.sendEvent(thisEvent) 
-				AnyTargetNotified = true
-			}
-		}
-		if (! AnyTargetNotified) {
-				log.warn "Device ${device.displayName}: Device does not support attribute ${thisEvent.name}, endpoint ${ep?:0}, Zwave report: ${cmd}."
-			}
-	}
+	sendEventToEndpoints(event:thisEvent, ep:ep)
 }

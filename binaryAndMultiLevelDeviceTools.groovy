@@ -32,28 +32,27 @@ void sendInitialCommand() {
 
 
 void binaryAndMultiLevelDeviceTools_refresh() {
-		if (record.classes.contains(0x25)) 		sendUnsupervised(zwave.switchBinaryV1.switchBinaryGet(), ep)
-		if (record.classes.contains(0x26)) 		sendUnsupervised(zwave.switchMultilevelV4.switchMultilevelGet(), ep)
+		if (record.classes.contains(0x25)) 		advancedZwaveSend(zwave.switchBinaryV1.switchBinaryGet(), ep)
+		if (record.classes.contains(0x26)) 		advancedZwaveSend(zwave.switchMultilevelV4.switchMultilevelGet(), ep)
 }
+////    Send Simple Z-Wave Commands to Device  ////	
 void sendZwaveValue(Map params = [value: null , duration: null , ep: null ] )
 {
 	Integer newValue = Math.max(Math.min(params.value, 99),0)
-	Map endpointData = getThisDeviceDataRecord().get("endpoints")
-	Map thisEndpoint = (endpointData.get( (params.ep ?: 0) as String) ?: endpointData.get( (params.ep ?: 0) as Integer))
-	List deviceClasses = thisEndpoint.classes
+	List<Integer> supportedClasses = getThisEndpointClasses(ep)
 
 	if ( !(0..100).contains(params.value) ) {
 	log.warn "Device ${}: in function sendZwaveValue() received a value ${params.value} that is out of range. Valid range 0..100. Using value of ${newValue}."
 	}
 	
-	if (deviceClasses.contains(0x26)) { // Multilevel  type device
-		if (! params.duration.is( null) ) sendSupervised(zwave.switchMultilevelV4.switchMultilevelSet(value: newValue, dimmingDuration:params.duration), params.ep)	
-			else sendSupervised(zwave.switchMultilevelV1.switchMultilevelSet(value: newValue), params.ep)
-	} else if (deviceClasses.contains(0x25)) { // Switch Binary Type device
-		sendSupervised(zwave.switchBinaryV1.switchBinarySet(switchValue: newValue ), params.ep)
-	} else if (deviceClasses.contains(0x20)) { // Basic Set Type device
+	if (supportedClasses.contains(0x26)) { // Multilevel  type device
+		if (! params.duration.is( null) ) advancedZwaveSend(zwave.switchMultilevelV4.switchMultilevelSet(value: newValue, dimmingDuration:params.duration), params.ep)	
+			else advancedZwaveSend(zwave.switchMultilevelV1.switchMultilevelSet(value: newValue), params.ep)
+	} else if (supportedClasses.contains(0x25)) { // Switch Binary Type device
+		advancedZwaveSend(zwave.switchBinaryV1.switchBinarySet(switchValue: newValue ), params.ep)
+	} else if (supportedClasses.contains(0x20)) { // Basic Set Type device
 		log.warn "Device ${targetDevice.displayName}: Using Basic Set to turn on device. A more specific command class should be used!"
-		sendSupervised(zwave.basicV1.basicSet(value: newValue ), params.ep)
+		advancedZwaveSend(zwave.basicV1.basicSet(value: newValue ), params.ep)
 	} else {
 		log.error "Device ${device.displayName}: Error in function sendZwaveValue(). Device does not implement a supported class to control the device!.${ep ? " Endpoint # is: ${params.ep}." : ""}"
 		return
@@ -64,7 +63,6 @@ void zwaveEvent(hubitat.zwave.commands.switchbinaryv2.SwitchBinaryReport cmd, ep
 {
 	String newSwitchState = ((cmd.value > 0) ? "on" : "off")
 	Map switchEvent = [name: "switch", value: newSwitchState, descriptionText: "Switch set", type: "physical"]
-	switchEvent += [deviceType:"ZWV", zwaveOriginalMessage:cmd.format()]
 	
 	List <com.hubitat.app.DeviceWrapper> targetDevices = getTargetDeviceListByEndPoint(ep)?.findAll{it -> it.hasAttribute("switch")}
 	
@@ -80,14 +78,13 @@ void zwaveEvent(hubitat.zwave.commands.switchmultilevelv4.SwitchMultilevelReport
 void zwaveEvent(hubitat.zwave.commands.basicv2.BasicReport cmd, ep = null) { processSwitchReport(cmd, ep) }
 void processSwitchReport(cmd, ep)
 {
-	List <com.hubitat.app.DeviceWrapper> targetDevices = getTargetDeviceListByEndPoint(ep)
-	targetDevices.each { thisTarget ->
-		
-		if (thisTarget.hasAttribute("position")) 
+	List<com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep)
+	targetDevices.each{ targetDevice ->
+		if (targetDevice.hasAttribute("position")) 
 		{ 
-			thisTarget.sendEvent( name: "position", value: (cmd.value == 99 ? 100 : cmd.value) , unit: "%", descriptionText: "Position set", type: "physical", deviceType:"ZWV", zwaveOriginalMessage:cmd.format() )
+			targetDevice.sendEvent( name: "position", value: (cmd.value == 99 ? 100 : cmd.value) , unit: "%", descriptionText: "Position set", type: "physical" )
 		}
-		if (thisTarget.hasAttribute("windowShade"))
+		if (targetDevice.hasAttribute("windowShade"))
 		{
 			String positionDescription
 			switch (cmd.value as Integer)
@@ -96,10 +93,10 @@ void processSwitchReport(cmd, ep)
 				case 99:  positionDescription = "open" ; break
 				default : positionDescription = "partially open" ; break
 			}
-			thisTarget.sendEvent( name: "windowShade", value: positionDescription, descriptionText: "Window Shade position set.", type: "physical", deviceType:"ZWV", zwaveOriginalMessage:cmd.format() )	
+			targetDevice.sendEvent( name: "windowShade", value: positionDescription, descriptionText: "Window Shade position set.", type: "physical" )	
 		}
 
-		if (thisTarget.hasAttribute("level") || thisTarget.hasAttribute("switch") ) // Switch or a fan
+		if (targetDevice.hasAttribute("level") || targetDevice.hasAttribute("switch") ) // Switch or a fan
 		{
 			Integer targetLevel = 0
 
@@ -110,25 +107,25 @@ void processSwitchReport(cmd, ep)
 				targetLevel = cmd.value
 			}
 
-			String priorSwitchState = thisTarget.currentValue("switch")
+			String priorSwitchState = targetDevice.currentValue("switch")
 			String newSwitchState = ((targetLevel != 0) ? "on" : "off")
-			Integer priorLevel = thisTarget.currentValue("level")
+			Integer priorLevel = targetDevice.currentValue("level")
 
 			if ((targetLevel == 99) && (priorLevel == 100)) targetLevel = 100
 
-			if (thisTarget.hasAttribute("switch"))
+			if (targetDevice.hasAttribute("switch"))
 			{
-				thisTarget.sendEvent(	name: "switch", value: newSwitchState, descriptionText: "Switch state set", type: "physical" , deviceType:"ZWV", zwaveOriginalMessage:cmd.format())
-				if (txtEnable) log.info "Device ${thisTarget.displayName} set to ${newSwitchState}."
+				targetDevice.sendEvent(	name: "switch", value: newSwitchState, descriptionText: "Switch state set", type: "physical" )
+				if (txtEnable) log.info "Device ${targetDevice.displayName} set to ${newSwitchState}."
 			}
-			if (thisTarget.hasAttribute("speed")) 
+			if (targetDevice.hasAttribute("speed")) 
 			{
-				thisTarget.sendEvent( name: "speed", value: levelToSpeed(targetLevel), descriptionText: "Speed set", type: "physical", deviceType:"ZWV", zwaveOriginalMessage:cmd.format() )
+				targetDevice.sendEvent( name: "speed", value: levelToSpeed(targetLevel), descriptionText: "Speed set", type: "physical" )
 			}
-			if (thisTarget.hasAttribute("level") && (targetLevel != 0 )) // Only handle on values 1-99 here. If device was turned off, that would be handle in the switch state block above.
+			if (targetDevice.hasAttribute("level") && (targetLevel != 0 )) // Only handle on values 1-99 here. If device was turned off, that would be handle in the switch state block above.
 			{
-				thisTarget.sendEvent( name: "level", value: targetLevel, descriptionText: "Level set", unit:"%", type: "physical", deviceType:"ZWV", zwaveOriginalMessage:cmd.format() )
-				if (txtEnable) log.info "Device ${thisTarget.displayName} level set to ${targetLevel}%"		
+				targetDevice.sendEvent( name: "level", value: targetLevel, descriptionText: "Level set", unit:"%", type: "physical" )
+				if (txtEnable) log.info "Device ${targetDevice.displayName} level set to ${targetLevel}%"		
 			}
 		}
 	}
@@ -219,7 +216,7 @@ void startLevelChange(direction, cd = null ){
 	
 	def sendMe = zwave.switchMultilevelV1.switchMultilevelStartLevelChange(upDown: upDown, ignoreStartLevel: 1, startLevel: 0)
 	
-    sendSupervised(sendMe, ep)
+    advancedZwaveSend(sendMe, ep)
 }
 
 
@@ -229,8 +226,8 @@ void stopLevelChange(cd = null ){
 	com.hubitat.app.DeviceWrapper targetDevice = (cd ? cd : device)
 	Integer ep = cd ? (cd.deviceNetworkId.split("-ep")[-1] as Integer) : null
 	
-	sendSupervised(zwave.switchMultilevelV4.switchMultilevelStopLevelChange(), ep)
-	sendUnsupervised(zwave.basicV1.basicGet(), ep)
+	advancedZwaveSend(zwave.switchMultilevelV4.switchMultilevelStopLevelChange(), ep)
+	advancedZwaveSend(zwave.basicV1.basicGet(), ep)
 }
 
 ////////////////////////////////////////////////////////
