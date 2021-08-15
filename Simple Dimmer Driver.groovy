@@ -16,11 +16,12 @@ Integer getS2RetryPeriod() { return 1500}
 #include zwaveTools.notificationTools
 #include zwaveTools.meterTools
 #include zwaveTools.sensorTools
+#include zwaveTools.binaryAndMultilevelDeviceTools
 /////////////////
 
 
 metadata {
-	definition (name: "Any Z-Wave Dimmer Driver v1.5.4",namespace: "jvm", author: "jvm") {
+	definition (name: "Any Z-Wave Dimmer Driver v1.5.5",namespace: "jvm", author: "jvm") {
 		capability "Initialize"
 		capability "Refresh"
 

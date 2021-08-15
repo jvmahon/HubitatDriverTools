@@ -3,15 +3,14 @@ library (
         author: "jvm33",
         category: "zwave",
         description: "Handles Events for Switches, Dimmers, Fans, Window Shades ",
-        name: "binaryAndMultiLevelDeviceTools",
+        name: "binaryAndMultilevelDeviceTools",
         namespace: "zwaveTools",
         documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
 		version: "0.0.1",
-		dependencies: "zwaveTools.hubTools",
+		dependencies: "zwaveTools.sendReceiveTools, zwaveTools.endpointTools",
 		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/binaryAndMultiLevelDeviceTools.groovy"
 )
 ////    Send Simple Z-Wave Commands to Device  ////	
-
 
 void sendInitialCommand() {
 	// If a device uses 'Supervision', then following a restart, code doesn't know the last sessionID that was sent to 
@@ -30,21 +29,17 @@ void sendInitialCommand() {
 	}
 }
 
-
 void binaryAndMultiLevelDeviceTools_refresh() {
 		if (record.classes.contains(0x25)) 		advancedZwaveSend(zwave.switchBinaryV1.switchBinaryGet(), ep)
 		if (record.classes.contains(0x26)) 		advancedZwaveSend(zwave.switchMultilevelV4.switchMultilevelGet(), ep)
 }
+
 ////    Send Simple Z-Wave Commands to Device  ////	
 void sendZwaveValue(Map params = [value: null , duration: null , ep: null ] )
 {
 	Integer newValue = Math.max(Math.min(params.value, 99),0)
 	List<Integer> supportedClasses = getThisEndpointClasses(ep)
 
-	if ( !(0..100).contains(params.value) ) {
-	log.warn "Device ${}: in function sendZwaveValue() received a value ${params.value} that is out of range. Valid range 0..100. Using value of ${newValue}."
-	}
-	
 	if (supportedClasses.contains(0x26)) { // Multilevel  type device
 		if (! params.duration.is( null) ) advancedZwaveSend(zwave.switchMultilevelV4.switchMultilevelSet(value: newValue, dimmingDuration:params.duration), params.ep)	
 			else advancedZwaveSend(zwave.switchMultilevelV1.switchMultilevelSet(value: newValue), params.ep)
@@ -64,7 +59,7 @@ void zwaveEvent(hubitat.zwave.commands.switchbinaryv2.SwitchBinaryReport cmd, ep
 	String newSwitchState = ((cmd.value > 0) ? "on" : "off")
 	Map switchEvent = [name: "switch", value: newSwitchState, descriptionText: "Switch set", type: "physical"]
 	
-	List <com.hubitat.app.DeviceWrapper> targetDevices = getTargetDeviceListByEndPoint(ep)?.findAll{it -> it.hasAttribute("switch")}
+	List <com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep)?.findAll{it -> it.hasAttribute("switch")}
 	
 	targetDevices.each { thisTarget -> 
 		thisTarget.sendEvent(switchEvent)
@@ -135,55 +130,31 @@ void componentOn(com.hubitat.app.DeviceWrapper cd){ on(cd:cd) }
 
 void on(Map params = [cd: null , duration: null , level: null ])
 {
-	Integer ep = params.cd ? (params.cd.deviceNetworkId.split("-ep")[-1] as Integer) : 0
-	
-	List <com.hubitat.app.DeviceWrapper> targetDevices = getTargetDeviceListByEndPoint(ep)
-	Integer targetLevel = null	
-	targetDevices.eachWithIndex { thisTarget , index ->
-		if (txtEnable) log.info "Device ${thisTarget.displayName}: Turning device to: On."
-		
+	Integer ep = getChildEndpointNumber(params.cd)
+	sendEventToEndpoints(event:[name: "switch", value: "on", descriptionText: "Device turned off", type: "digital"] , ep:ep)
 
-		if (thisTarget.hasAttribute("switch")) {	
-			thisTarget.sendEvent(name: "switch", value: "on", descriptionText: "Device turned on", type: "digital")
-		} else {
-			log.error "Device ${thisTarget.displayName}: Error in function on(). Device does not have a switch attribute."
-		}
-		
-		if (thisTarget.hasAttribute("level")) {
-			// compute target level only once -- for the first 'level' devices, and to maintain sync, set all others to the same.
-			if (targetLevel.is ( null )){
-				targetLevel = params.level ?: (thisTarget.currentValue("level") as Integer) ?: 100
-				targetLevel = Math.max(Math.min(targetLevel, 100), 0)
-			}
-			thisTarget.sendEvent(name: "level", value: targetLevel, descriptionText: "Device level set", unit:"%", type: "digital")
-			if (txtEnable) log.info "Device ${thisTarget.displayName}: Setting level to: ${targetLevel}%."
-
-		}
+	Integer targetLevel
+	if (params.level) {
+		targetLevel = (params.level as Integer) 
+	} else {
+		List<com.hubitat.app.DeviceWrapper> targets = getChildDeviceListByEndpoint(ep) + ( (ep == 0) ? device : null )
+		targetLevel = targets?.find{it.hasAttribute("level")}?.currentValue("level") as Integer
 	}
-	sendZwaveValue(value: targetLevel ?: 100, duration: params.duration, ep: ep)
+
+	targetLevel = Math.min(Math.max(targetLevel, 1), 100)
+			
+	sendEventToEndpoints(event:[name: "level", value: targetLevel, descriptionText: "Device level set", unit:"%", type: "digital"], ep:ep)
+				
+	sendZwaveValue(value: targetLevel, duration: params.duration, ep: ep)
 }
 
 void componentOff(com.hubitat.app.DeviceWrapper cd){ 	off(cd:cd) }
+
 void off(Map params = [cd: null , duration: null ]) {
-	Integer ep = params.cd ? (params.cd.deviceNetworkId.split("-ep")[-1] as Integer) : 0
-	
-	List <com.hubitat.app.DeviceWrapper> targetDevices = getTargetDeviceListByEndPoint(ep)
-	
-	targetDevices.each { thisTarget ->
-	
-		if (txtEnable) log.info "Device ${thisTarget.displayName}: Turning device to: Off."
-
-		if (thisTarget.hasAttribute("switch")) {	
-			thisTarget.sendEvent(name: "switch", value: "off", descriptionText: "Device turned off", type: "digital")
-			
-			sendZwaveValue(value: 0, duration: params.duration, ep: ep)
-		} else {
-			log.error "Device ${thisTarget.displayName}: Error in function off(). Device does not have a switch attribute."
-		}
-	}
+	Integer ep = getChildEndpointNumber(params.cd)
+	sendEventToEndpoints(event:[name: "switch", value: "off", descriptionText: "Device turned off", type: "digital"], ep:ep)
+	sendZwaveValue(value: 0, duration: params.duration, ep: ep)
 }
-
-
 
 void componentSetLevel(com.hubitat.app.DeviceWrapper cd, level, transitionTime = null) {
 	if (cd.hasCapability("FanControl") ) {
@@ -261,7 +232,7 @@ void setSpeed(Map params = [speed: null , level: null , cd: null ])
 	com.hubitat.app.DeviceWrapper originatingDevice = params.cd ?: device
 	Integer ep = params.cd ? (originatingDevice.deviceNetworkId.split("-ep")[-1] as Integer) : 0
 	
-	List<com.hubitat.app.DeviceWrapper> targetDevices = getTargetDeviceListByEndPoint(ep)
+	List<com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep)
 	
 	if (params.speed.is( null ) ) {
 		log.error "Device ${originatingDevice.displayName}: setSpeed command received without a valid speed setting. Speed setting was ${params.speed}. Returning without doing anything!"

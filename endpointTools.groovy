@@ -59,16 +59,20 @@ List<Integer> getEndpointMetersSupported( ep = null ){
 
 // Get the endpoint number for a child device
 Integer getChildEndpointNumber(com.hubitat.app.DeviceWrapper thisChild) {
-	thisChild?.deviceNetworkId.split("-ep")[-1] as Integer
+	if (! thisChild) return 0
+	thisChild.deviceNetworkId.split("-ep")[-1] as Integer
 }
 
 // Get List (possibly multiple) child device for a specific endpoint. Child devices can also be of the form '-ep000' 
 // Child devices associated with the root device end in -ep000
 List<com.hubitat.app.DeviceWrapper> getChildDeviceListByEndpoint( ep ) {
 	List<com.hubitat.app.DeviceWrapper> returnList
-	returnList	= getChildDevices().findAll{ it -> (childEndpointNumber(it)  == ((ep ?: 0) as Integer))}
+	returnList	= getChildDevices().findAll{ it -> (getChildEndpointNumber(it)  == ((ep ?: 0) as Integer))}
 	return returnList
 }
+
+
+
 
 void sendEventToEndpoints(Map params = [ event: null , ep: null ,  sendEveryEventType: false , addRootToEndpoint0: true ,  alwaysSend: null , neverSend: null ])
 {
