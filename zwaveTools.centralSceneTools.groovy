@@ -46,14 +46,14 @@ void zwaveEvent(hubitat.zwave.commands.centralscenev3.CentralSceneSupportedRepor
 
 void doubleTap(button) 	{ multiTap(button, 2)	}
 void push(button) 		{ multiTap(button, 1) }
-void hold(button) 		{ sendCCEvent([name:"held", value:button, type:"digital", isStateChange: true ]      )}
-void release(button) 	{ sendCCEvent([name:"released", value:button, type:"digital", isStateChange: true ] )}
+void hold(button) 		{ sendEventToAll([name:"held", value:button, type:"digital", isStateChange: true ]      )}
+void release(button) 	{ sendEventToAll([name:"released", value:button, type:"digital", isStateChange: true ] )}
 
 void multiTap(button, taps) {
 	if (taps == 1) {
-	    sendCCEvent([name:"pushed", value:button, type:"digital", isStateChange: true ])	
+	    sendEventToAll([name:"pushed", value:button, type:"digital", isStateChange: true ])	
 	} else if (taps == 2) {
-		sendCCEvent([name:"doubleTapped", value:button, type:"digital", isStateChange: true ])	
+		sendEventToAll([name:"doubleTapped", value:button, type:"digital", isStateChange: true ])	
 	}
 
     sendEventToAll(event:[name:"multiTapButton", value:("${button}.${taps}" as Float), type:"physical", unit:"Button #.Tap Count", isStateChange: true ])		
