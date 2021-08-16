@@ -37,7 +37,6 @@ void binaryAndMultiLevelDeviceTools_refresh() {
 ////    Send Simple Z-Wave Commands to Device  ////	
 void sendZwaveValue(Map params = [value: null , duration: null , ep: null ] )
 {
-	log.debug "sendZwaveValue parameters ${params}"
 	Integer newValue = Math.max(Math.min(params.value, 99),0)
 	List<Integer> supportedClasses = getThisEndpointClasses(ep)
 
