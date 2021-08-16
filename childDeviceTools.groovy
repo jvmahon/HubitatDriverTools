@@ -49,4 +49,25 @@ void createChildDevices()
 		}
 	}
 }
+//
+		command "addNewChildDevice", [[name:"Device Name*", type:"STRING"], 
+                                      [name:"componentDriverName*",type:"ENUM", constraints:(getDriverChoices()) ], 
+                                      [name:"Endpoint",type:"NUMBER", description:"Endpoint Number, blank or 0 = root" ] ]
+
+//
+
+List getDriverChoices() {
+	// Returns the name of the generic component drivers with their namespace listed in parenthesis
+    return getInstalledDrivers().findAll{it.name.toLowerCase().startsWith("generic component")}.collect{ "${it.name} (${it.namespace})"}.sort()
+}
+
+void addNewChildDevice(newChildName, componentDriverName, endpoint) {
+	log.debug "Driver name is ${newChildName} with driver component type ${componentDriverName} for endpoint ${endpoint}"
+	Map thisDriver = getInstalledDrivers().find{ "${it.name} (${it.namespace})" == componentDriverName }
+
+	log.debug "selected driver is ${thisDriver}"
+	// String childNetworkId = 
+	// addChildDevice(thisDriver.namespace, thisDriver.name, childNetworkId, [name: newChildName ?:"${device.displayName}-ep${ep}", isComponent: false])
+}
+
 /////////////////////////////////////////////////////////////////
