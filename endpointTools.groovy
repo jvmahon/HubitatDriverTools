@@ -23,12 +23,14 @@ library (
 				
 */
 
+/*
 Map getDeviceRecord() {
 	dataRecordByProductType.get("deviceRecord", new ConcurrentHashMap(8, 0.75, 1)) // from globalDataTools
 }
+*/
 
 Map getFullEndpointRecord() {
-	deviceRecord.get("endpoints", new ConcurrentHashMap(8, 0.75, 1)) // from globalDataTools
+	dataRecordByProductType.get("endpoints", new ConcurrentHashMap(8, 0.75, 1)) // from globalDataTools
 }
 
 Map getThisEndpointData(ep) {

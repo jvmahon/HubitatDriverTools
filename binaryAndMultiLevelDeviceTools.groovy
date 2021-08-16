@@ -60,14 +60,14 @@ void zwaveEvent(hubitat.zwave.commands.switchbinaryv2.SwitchBinaryReport cmd, ep
 	String newSwitchState = ((cmd.value > 0) ? "on" : "off")
 	Map switchEvent = [name: "switch", value: newSwitchState, descriptionText: "Switch set", type: "physical"]
 	
-	List <com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep)?.findAll{it -> it.hasAttribute("switch")}
+	List <com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep)?.findAll{it.hasAttribute("switch")}
+	if (((ep ?: 0 )== 0) && device.hasAttribute ("switch")) targetDevices += device
 	
-	targetDevices.each { thisTarget -> 
-		thisTarget.sendEvent(switchEvent)
-		if (txtEnable) log.info "Device ${thisTarget.displayName} set to ${newSwitchState}."
+	targetDevices.each { it.sendEvent(switchEvent)
+		if (txtEnable) log.info "Device ${it.displayName} set to ${newSwitchState}."
 	}
 	
-	if (targetDevices.is( null )) log.error "Device ${device.displayName}: received a Switch Binary Report for a device that does not have a switch attribute. Endpoint ${ep ?: 0}."
+	if (targetDevices.size() < 1) log.error "Device ${device.displayName}: received a Switch Binary Report for a device that does not have a switch attribute. Endpoint ${ep ?: 0}."
 }
 
 void zwaveEvent(hubitat.zwave.commands.switchmultilevelv4.SwitchMultilevelReport cmd, ep = null) { processSwitchReport(cmd, ep) }
@@ -75,6 +75,8 @@ void zwaveEvent(hubitat.zwave.commands.basicv2.BasicReport cmd, ep = null) { pro
 void processSwitchReport(cmd, ep)
 {
 	List<com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep)
+	if ((ep ?: 0 )== 0) targetDevices += device
+	
 	targetDevices.each{ targetDevice ->
 		if (targetDevice.hasAttribute("position")) 
 		{ 

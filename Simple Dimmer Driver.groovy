@@ -186,10 +186,10 @@ void initialize()
 		
 	if (localDataRecord && (localDataRecord.formatVersion == dataRecordFormatVersion)){
 		state.remove("deviceRecord") // If a device data record was added to the database, delete if it was previously from openSmartHouse.
-		dataRecordByProductType.put("deviceRecord", reparseDeviceData(localDataRecord)) // Store in the Global ConcurrentHashMap
+		dataRecordByProductType.putAll(reparseDeviceData(localDataRecord)) // Store in the Global ConcurrentHashMap
 	} else if ( state.deviceRecord && getDataRecordByProductType().deviceRecord.is( null ) ) { 
 		// Put in the Global ConcurrentHashMap if it exist locally.
-		dataRecordByProductType.put("deviceRecord", reparseDeviceData(localDataRecord)) // Store in the Global ConcurrentHashMap
+		dataRecordByProductType.putAll(reparseDeviceData(localDataRecord)) // Store in the Global ConcurrentHashMap
 	} else if ( state.deviceRecord.is( null ) && getDataRecordByProductType().deviceRecord ) {
 		// Data record doesn't exist in state, but it is in the concurrentHashMap - So store in state rather than re-retrieve
 		state.deviceRecord = dataRecordByProductType.deviceRecord
@@ -197,7 +197,7 @@ void initialize()
 		// Data record doesn't exist - get it and store in the global data record
 		Map createdRecord = openSmarthouseCreateDeviceDataRecord() 
 		state.deviceRecord = createdRecord
-		if (createdRecord) dataRecordByProductType.put("deviceRecord", reparseDeviceData(localDataRecord))
+		if (createdRecord) dataRecordByProductType.putAll(reparseDeviceData(localDataRecord))
 	}
 	///////////////////////////////////////////////////////////////////////////////////
 	//////////          Done with Device Data Record Management      //////////////////
@@ -221,12 +221,9 @@ void initialize()
 }
 
 //////////// Get Inputs //////////////
-Map getThisDeviceDataRecord(){
-	getDataRecordByProductType()?.deviceRecord
-}
 
 Map getDeviceInputs()  { 
-	Map returnMe = getThisDeviceDataRecord()?.deviceInputs.sort({it.key})
+	Map returnMe = getDataRecordByProductType()?.deviceInputs?.sort({it.key})
 	if (logEnable && returnMe.is( null ) ) log.warn "Device ${device.displayName}: Device has no inputs. Check if device was initialized. returnMe is ${returnMe}."
 	return returnMe
 }
