@@ -76,7 +76,7 @@ void sendEventToEndpoints(Map params = [ event: null , ep: null ,  sendEveryEven
 {
 	List<String> supportedParams = ["event", "ep", "sendEveryEventType", "addRootToEndpoint0", "alwaysSend", "neverSend"]
 	if (! (params.every{ k, v ->  supportedParams.contains(k) } ) ) {
-		log.error "Error calling advancedSendEvent. Supported parameters are ${supportedParams}. Function was called with parameters: ${params.keySet()}"
+		log.error "Error calling sendEventToEndpoints. Supported parameters are ${supportedParams}. Function was called with parameters: ${params.keySet()}"
 		return
 	}
 	
@@ -115,7 +115,7 @@ void sendEventToAll(Map params = [ event: null , sendEveryEventType: false , add
 {
 	List<String> supportedParams = ["event", "ep", "sendEveryEventType", "addRootToEndpoint0", "alwaysSend", "neverSend"]
 	if (! (params.every{ k, v ->  supportedParams.contains(k) } ) ) {
-		log.error "Error calling advancedSendEvent. Supported parameters are ${supportedParams}. Function was called with parameters: ${params.keySet()}"
+		log.error "Error calling sendEventToAll. Supported parameters are ${supportedParams}. Function was called with parameters: ${params.keySet()}"
 		return
 	}
 	
