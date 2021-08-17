@@ -85,7 +85,7 @@ void sendEventToEndpoints(Map params = [ event: null , ep: null ,  sendEveryEven
 	// If endpoint is 0 or null and there were no child devices with a 0 endpoint, then return the root device as the child.
 	// || (params.addRootToEndpoint0 as Boolean)) && (params.ep as Integer < 1)  
 	
-	if ((params.ep as Integer) == 0)
+	if (((params.ep ?:0) as Integer) == 0)
 		{ 
 			if ( (params.addRootToEndpoint0) ? ((params.addRootToEndpoint0) as Boolean) : true )
 			{
