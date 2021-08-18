@@ -25,17 +25,14 @@ Integer getS2RetryPeriod() { return 1500}
 
 
 metadata {
-	definition (name: "Any Z-Wave Dimmer Driver v1.5.5",namespace: "jvm", author: "jvm") {
+	definition (name: "Any Z-Wave Sensor Driver v1.5.5",namespace: "jvm", author: "jvm") {
 		capability "Initialize"
 		capability "Refresh"
 
-		capability "Actuator"
-		capability "Switch"
-		capability "SwitchLevel"
-		
-       // capability "Sensor"				
-        // capability "MotionSensor"
-        // capability "TamperAlert"
+
+        capability "Sensor"				
+        capability "MotionSensor"
+        capability "TamperAlert"
 		// capability "WaterSensor"
 		// capability "ContactSensor"
 		// capability "ShockSensor"		// Use this for glass breakage!
@@ -43,33 +40,17 @@ metadata {
 		// capability "LiquidFlowRate"
 		// attribute "carbonDioxideDetected"
 		
-		capability "EnergyMeter"
-        capability "PowerMeter"
-		capability "VoltageMeasurement"
-        capability "CurrentMeter"
-		attribute "energyConsumed", "number" 	// Custom Attribute for meter devices supporting energy consumption. Comment out if not wanted.
-		attribute "powerFactor", "number"	// Custom Attribute for meter devices supporting powerFactor. Comment out if not wanted.
-		attribute "pulseCount", "number"		// Custom Attribute for meter devices supporting powerFactor. Comment out if not wanted.
-		attribute "reactiveCurrent", "number"		// Custom Attribute for meter devices supporting powerFactor. Comment out if not wanted.
-		attribute "reactivePower", "number"		// Custom Attribute for meter devices supporting powerFactor. Comment out if not wanted.
+
 		
-		// capability "Battery"
+		capability "Battery"
 
 		// capability "Consumable" 		// For smoke, CO, CO2 alarms that report their end-of-life
 		// capability "FilterStatus" 	// For water filters that report status of filter
 		
-		capability "PushableButton"
-		capability "HoldableButton"
-		capability "ReleasableButton"
-		capability "DoubleTapableButton"	
-		attribute "multiTapButton", "number"
 
 		command "identify" // implements the Z-Wave Plus identify function which can flash device indicators.
 		command "resetDriver" // deletes the stored state information
 							
-        command "multiTap", [[name:"button",type:"NUMBER", description:"Button Number", constraints:["NUMBER"]],
-		 			[name:"taps",type:"NUMBER", description:"Tap count", constraints:["NUMBER"]]]	
-
 		command "setParameter",[[name:"parameterNumber",type:"NUMBER", description:"Parameter Number", constraints:["NUMBER"]],
 					[name:"value",type:"NUMBER", description:"Parameter Value", constraints:["NUMBER"]]
 					]	
