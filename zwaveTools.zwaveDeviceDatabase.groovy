@@ -7,7 +7,10 @@ library (
         description: "Database of Device Characteristics",
         name: "zwaveDeviceDatabase",
         namespace: "zwaveTools",
-        documentationLink: "https://github.com/jvmahon/HubitatDriverTools"
+        documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
+		version: "0.0.1",
+		dependencies: "none",
+		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/zwaveDeviceDatabase.groovy"
 )
 
 Map getThisDeviceDatabaseRecord() {

@@ -19,7 +19,7 @@ SDS13713 = Silicon Labs Zwave Standard
 //////////////////////////////////////////////////////////////////////
 
 
-void	notificationTools_refresh(ep = null ) {
+void	notificationTools_refresh(Integer ep = null ) {
 	Map specifiedNotifications = getEndpointNotificationsSupported(ep)
 	if (specifiedNotifications)
 	{ 
@@ -31,12 +31,12 @@ void	notificationTools_refresh(ep = null ) {
 	}
 }
 
-void performRefreshByType(type, events, ep)
+void performRefreshByType(Integer type, List<Integer> events, Integer ep)
 {
 	// type is a single integer item corrensponding to Column B of zwave standard SDS13713
 	//	Events is a list of integers identifying the sub-events for the type. This correspondes to column G of zwave standard SDS13713.
 	events.each{ it ->
-		basicZwaveSend(zwave.notificationV8.notificationGet(v1AlarmType:0, event: (it as Integer), notificationType: type), ep)
+		basicZwaveSend(zwave.notificationV8.notificationGet(v1AlarmType:0, event:(Integer) it , notificationType: type), ep)
 	}
 }
 
@@ -67,17 +67,17 @@ List<Integer> getNotificationTypesList(def cmd) {
 	if (cmd.homeMonitoring)		notificationTypes += 22 // Home Monitoring
 }
 
-void zwaveEvent(hubitat.zwave.commands.notificationv8.NotificationSupportedReport report, ep = null )
+void zwaveEvent(hubitat.zwave.commands.notificationv8.NotificationSupportedReport report, Integer ep = null )
 { 
 	getNotificationTypesList(report).each{it -> 
-			basicZwaveSend(zwave.notificationV8.eventSupportedGet(notificationType:(it as Integer)), ep)}
+			basicZwaveSend(zwave.notificationV8.eventSupportedGet(notificationType:(Integer) it), ep)}
 }
 
-void zwaveEvent(hubitat.zwave.commands.notificationv8.EventSupportedReport cmd, ep = null )
+void zwaveEvent(hubitat.zwave.commands.notificationv8.EventSupportedReport cmd, Integer ep = null )
 {
 	// Build a map of the notifications supported by a device endpoint and store it in the endpoint data
-	List supportedEventsByType = cmd.supportedEvents.findAll{k, v -> ((v as Boolean) == true) }.collect{k, v -> (k as Integer) }
-	getEndpointNotificationsSupported(ep).put( (cmd.notificationType as Integer), supportedEventsByType)
+	List supportedEventsByType = cmd.supportedEvents.findAll{k, v -> ((v as Boolean) == true) }.collect{key, value -> (Integer) key  }
+	getEndpointNotificationsSupported(ep).put( (Integer) cmd.notificationType , supportedEventsByType)
 }
 
 Map getFormattedZWaveNotificationEvent(def cmd)
@@ -233,7 +233,7 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 				2:[name:"presence" , value:"present", descriptionText:"Home occupied"]
 				]
 				
-		].get(cmd.notificationType as Integer)?.get(cmd.event as Integer)
+		].get((Integer) cmd.notificationType )?.get((Integer) cmd.event )
 
 		if (notificationEvent.is( null )) 
 		{
@@ -241,17 +241,17 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 		}
 		
 		if ((cmd.event == 0) && (cmd.eventParametersLength == 1)) { // This is for clearing events.
-				return notificationEvent.get(cmd.eventParameter[0] as Integer) + ([deviceType:"ZWV", zwaveOriginalMessage:cmd.format()])
+				return notificationEvent.get( (Integer) cmd.eventParameter[0] )
 		}
 		
 		if (cmd.eventParametersLength > 1) { // This is unexpected! None of the current notifications use this.
 			log.error "In function getZWaveNotificationEvent(), received command with eventParametersLength of unexpected size."
 			return null
 		} 
-		return notificationEvent + [deviceType:"ZWV", zwaveOriginalMessage:cmd.format()]
+		return notificationEvent
 }
 
-void zwaveEvent(hubitat.zwave.commands.notificationv8.NotificationReport cmd, ep = null )
+void zwaveEvent(hubitat.zwave.commands.notificationv8.NotificationReport cmd, Integer ep = null )
 {
 	if (userNotificationReportFilter) cmd = userNotificationReportFilter(cmd)
 	

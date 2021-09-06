@@ -39,54 +39,54 @@ String setCentralSceneButtonState(Integer button, String state) {
 }
 
 void zwaveEvent(hubitat.zwave.commands.centralscenev3.CentralSceneSupportedReport  cmd) {
-	sendEventToAll(event:[name:"numberOfButtons", value: cmd.supportedScenes])
+	sendEventToAll(event:[name:"numberOfButtons", value: cmd.supportedScenes, descriptionText:"Reporting Number of Buttons:${cmd.supportedScenes}."])
 }
 
 
 
 void doubleTap(button) 	{ multiTap(button, 2)	}
 void push(button) 		{ multiTap(button, 1) }
-void hold(button) 		{ sendEventToAll(event:[name:"held", value:button, type:"digital", isStateChange: true ]      )}
-void release(button) 	{ sendEventToAll(event:[name:"released", value:button, type:"digital", isStateChange: true ] )}
+void hold(button) 		{ sendEventToAll(event:[name:"held", value:button, type:"digital", isStateChange: true, descriptionText:"Holding button ${button}." ]      )}
+void release(button) 	{ sendEventToAll(event:[name:"released", value:button, type:"digital", isStateChange: true, descriptionText:"Released button ${button}." ] )}
 
 void multiTap(button, taps) {
 	if (taps == 1) {
-	    sendEventToAll(event:[name:"pushed", value:button, type:"digital", isStateChange: true ])	
+	    sendEventToAll(event:[name:"pushed", value:button, type:"digital", isStateChange: true , descriptionText:"Button ${button} pushed." ])	
 	} else if (taps == 2) {
-		sendEventToAll(event:[name:"doubleTapped", value:button, type:"digital", isStateChange: true ])	
+		sendEventToAll(event:[name:"doubleTapped", value:button, type:"digital", isStateChange: true , descriptionText:"Button ${button} double-tapped."])	
 	}
 
-    sendEventToAll(event:[name:"multiTapButton", value:("${button}.${taps}" as Float), type:"physical", unit:"Button #.Tap Count", isStateChange: true ])		
+    sendEventToAll(event:[name:"multiTapButton", value:("${button}.${taps}" as Float), type:"physical", unit:"Button #.Tap Count", isStateChange: true , descriptionText:"Button ${button} tapped ${taps} times." ])		
 }
 
 void zwaveEvent(hubitat.zwave.commands.centralscenev3.CentralSceneNotification cmd)
 {
 
 	// Check if central scene is already in a held state, if so, and you get another held message, its a refresh, so don't send a sendEvent
-	if ((getCentralSceneButtonState(cmd.sceneNumber as Integer) == "held") && (cmd.keyAttributes == 2)) return
+	if ((getCentralSceneButtonState((Integer)cmd.sceneNumber) == "held") && (((Integer) cmd.keyAttributes) == 2)) return
 
 	// Central scene events should be sent with isStateChange:true since it is valid to send two of the same events in a row (except held, whcih is handled in previous line)
     Map event = [value:cmd.sceneNumber, type:"physical", unit:"button#", isStateChange:true]
 	
 	event.name = [	0:"pushed", 1:"released", 2:"held",  3:"doubleTapped", 
-					4:"buttonTripleTapped", 5:"buttonFourTaps", 6:"buttonFiveTaps"].get(cmd.keyAttributes as Integer)
+					4:"buttonTripleTapped", 5:"buttonFourTaps", 6:"buttonFiveTaps"].get((Integer)cmd.keyAttributes)
 	
 	String tapDescription = [	0:"Pushed", 1:"Released", 2:"Held",  3:"Double-Tapped", 
-								4:"Three Taps", 5:"Four Taps", 6:"Five Taps"].get(cmd.keyAttributes as Integer)
+								4:"Three Taps", 5:"Four Taps", 6:"Five Taps"].get((Integer)cmd.keyAttributes)
     
 	// Save the event name for event that is about to be sent using sendEvent. This is important for 'held' state refresh checking
-	setCentralSceneButtonState(cmd.sceneNumber, event.name)	
+	setCentralSceneButtonState((Integer) cmd.sceneNumber , event.name)	
 	
-	event.descriptionText="${device.displayName}: Button #${cmd.sceneNumber}: ${tapDescription}"
+	event.descriptionText="Button #${cmd.sceneNumber}: ${tapDescription}"
 
 	sendEventToAll(event:event)
 	
 	// Next code is for the custom attribute "multiTapButton".
-	Integer taps = [0:1, 3:2, 4:3, 5:4, 6:5].get(cmd.keyAttributes as Integer)
+	Integer taps = [0:1, 3:2, 4:3, 5:4, 6:5].get((Integer)cmd.keyAttributes)
 	if ( taps)
 	{
 		event.name = "multiTapButton"
-		event.unit = "Button #.Tap Count"
+		event.unit = "Button.Taps"
 		event.value = ("${cmd.sceneNumber}.${taps}" as Float)
 		sendEventToAll(event:event)
 	} 

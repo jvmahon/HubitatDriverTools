@@ -38,10 +38,10 @@ void binaryAndMultiLevelDeviceTools_refresh() {
 void sendZwaveValue(Map params = [value: null , duration: null , ep: null ] )
 {
 	Integer newValue = Math.max(Math.min(params.value, 99),0)
-	List<Integer> supportedClasses = getThisEndpointClasses(ep)
+	List<Integer> supportedClasses = getThisEndpointClasses((Integer) params.ep)
 
 	if (supportedClasses.contains(0x26)) { // Multilevel  type device
-		if (! params.duration.is( null) ) advancedZwaveSend(zwave.switchMultilevelV4.switchMultilevelSet(value: newValue, dimmingDuration:params.duration), params.ep)	
+		if (! params.duration.is( null ) ) advancedZwaveSend(zwave.switchMultilevelV4.switchMultilevelSet(value: newValue, dimmingDuration:params.duration), params.ep)	
 			else advancedZwaveSend(zwave.switchMultilevelV1.switchMultilevelSet(value: newValue), params.ep)
 	} else if (supportedClasses.contains(0x25)) { // Switch Binary Type device
 		advancedZwaveSend(zwave.switchBinaryV1.switchBinarySet(switchValue: newValue ), params.ep)
@@ -54,78 +54,64 @@ void sendZwaveValue(Map params = [value: null , duration: null , ep: null ] )
 	}
 }
 
-void zwaveEvent(hubitat.zwave.commands.switchbinaryv2.SwitchBinaryReport cmd, ep = null )
+void zwaveEvent(hubitat.zwave.commands.switchbinaryv2.SwitchBinaryReport cmd, Integer ep = null )
 {
-	String newSwitchState = ((cmd.value > 0) ? "on" : "off")
-	Map switchEvent = [name: "switch", value: newSwitchState, descriptionText: "Switch set", type: "physical"]
-	
-	List <com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep)?.findAll{it.hasAttribute("switch")}
-	if (((ep ?: 0 )== 0) && device.hasAttribute ("switch")) targetDevices += device
-	
-	targetDevices.each { it.sendEvent(switchEvent)
-		if (txtEnable) log.info "Device ${it.displayName} set to ${newSwitchState}."
+	Map switchEvent
+	if (cmd.value > 0) {
+			switchEvent = [name: "switch", value: "on", descriptionText: "Switch turned on.", type: "physical"]
+	} else {
+			switchEvent = [name: "switch", value: "off", descriptionText: "Switch turned off", type: "physical"]
 	}
-	
-	if (targetDevices.size() < 1) log.error "Device ${device.displayName}: received a Switch Binary Report for a device that does not have a switch attribute. Endpoint ${ep ?: 0}."
+	sendEventToEndpoints(event: switchEvent, ep:ep)
 }
 
-void zwaveEvent(hubitat.zwave.commands.switchmultilevelv4.SwitchMultilevelReport cmd, ep = null) { processSwitchReport(cmd, ep) }
-void zwaveEvent(hubitat.zwave.commands.basicv2.BasicReport cmd, ep = null) { processSwitchReport(cmd, ep) }
-void processSwitchReport(cmd, ep)
-{
-	List<com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep)
-	if ((ep ?: 0 )== 0) targetDevices += device
-	
-	targetDevices.each{ targetDevice ->
-		if (targetDevice.hasAttribute("position")) 
-		{ 
-			targetDevice.sendEvent( name: "position", value: (cmd.value == 99 ? 100 : cmd.value) , unit: "%", descriptionText: "Position set", type: "physical" )
-		}
-		if (targetDevice.hasAttribute("windowShade"))
-		{
-			String positionDescription
-			switch (cmd.value as Integer)
-			{
-				case 0:  positionDescription = "closed" ; break
-				case 99:  positionDescription = "open" ; break
-				default : positionDescription = "partially open" ; break
-			}
-			targetDevice.sendEvent( name: "windowShade", value: positionDescription, descriptionText: "Window Shade position set.", type: "physical" )	
-		}
+List<Map> getAllMultiLevelEvents(com.hubitat.app.DeviceWrapper cd, Integer targetLevel){
+	List<Map> rvalue
 
-		if (targetDevice.hasAttribute("level") || targetDevice.hasAttribute("switch") ) // Switch or a fan
-		{
-			Integer targetLevel = 0
+	if (targetLevel == 0) {
+		rvalue = [
+				[name: "position", value:0 , unit: "%", descriptionText: "Position set to 0%", type: "physical"],
+				[name: "windowShade", value: "closed" , descriptionText: "Window Shade closed", type: "physical" ],
+				[name: "switch", value: "off", descriptionText: "Switch turned off", type: "physical" ],
+				[name: "speed", value: "off", descriptionText: "Fan turned off", type: "physical" ],
+			]
+		if (! cd.hasAttribute("switch")) { rvalue.add([name: "level", value: 0, descriptionText: "Level set to 0%", type: "physical" ]) }
+	} else {
+			String shadePosition = (targetLevel == 100) ? "open" : "partially open"
+			String fanSpeed = levelToSpeed(targetLevel)
 
-			if (cmd.hasProperty("targetValue")) //  Consider duration and target, but only when both are present and in transition with duration > 0 
-			{
-				targetLevel = cmd.targetValue ?: cmd.value
-			} else {
-				targetLevel = cmd.value
-			}
-
-			String priorSwitchState = targetDevice.currentValue("switch")
-			String newSwitchState = ((targetLevel != 0) ? "on" : "off")
-			Integer priorLevel = targetDevice.currentValue("level")
-
-			if ((targetLevel == 99) && (priorLevel == 100)) targetLevel = 100
-
-			if (targetDevice.hasAttribute("switch"))
-			{
-				targetDevice.sendEvent(	name: "switch", value: newSwitchState, descriptionText: "Switch state set", type: "physical" )
-				if (txtEnable) log.info "Device ${targetDevice.displayName} set to ${newSwitchState}."
-			}
-			if (targetDevice.hasAttribute("speed")) 
-			{
-				targetDevice.sendEvent( name: "speed", value: levelToSpeed(targetLevel), descriptionText: "Speed set", type: "physical" )
-			}
-			if (targetDevice.hasAttribute("level") && (targetLevel != 0 )) // Only handle on values 1-99 here. If device was turned off, that would be handle in the switch state block above.
-			{
-				targetDevice.sendEvent( name: "level", value: targetLevel, descriptionText: "Level set", unit:"%", type: "physical" )
-				if (txtEnable) log.info "Device ${targetDevice.displayName} level set to ${targetLevel}%"		
-			}
-		}
+		rvalue = [
+				[name: "position", value:targetLevel , unit: "%", descriptionText: "Position set to ${targetLevel}%", type: "physical"],
+				[name: "windowShade", value: shadePosition , descriptionText: "Window Shade ${shadePosition}", type: "physical"],
+				[name: "switch", value: "on", descriptionText: "Switch turned on", type: "physical" ],
+				[name: "speed", value: fanSpeed, descriptionText: "Fan level set to ${fanSpeed}", type: "physical" ],
+				[name: "level", value: targetLevel, descriptionText: "Level set to ${targetLevel}%", type: "physical" ]	,
+			]
 	}
+	return rvalue
+
+}
+
+void zwaveEvent(hubitat.zwave.commands.switchmultilevelv4.SwitchMultilevelReport cmd, Integer ep = null ) { processSwitchReport(cmd, ep) }
+void zwaveEvent(hubitat.zwave.commands.basicv2.BasicReport cmd, Integer ep = null ) { processSwitchReport(cmd, ep) }
+void processSwitchReport(cmd, Integer ep)
+{
+	List<Map> events = []
+
+	Integer targetLevel = cmd.value
+	if (cmd.hasProperty("targetValue") && (!cmd.targetValue.is( null )) && ((Integer)(cmd.duration) > 0) ) targetLevel = cmd.targetValue as Integer
+	if (targetLevel == 99) {targetLevel = 100 }
+	
+	List<com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep ?: 0)
+	
+	targetDevices?.each{ targetDevice ->
+			events = getAllMultiLevelEvents(targetDevice, targetLevel)	
+			targetDevice?.parse(events)
+		}
+	if ( (ep ?: 0)  == 0) { 
+		events = getAllMultiLevelEvents(device, targetLevel)
+		this.parse(events)
+		}	
 }
 
 void componentOn(com.hubitat.app.DeviceWrapper cd){ on(cd:cd) }
@@ -134,7 +120,7 @@ void on(Map params = [cd: null , duration: null , level: null ])
 {
 	Integer ep = getChildEndpointNumber(params.cd)
 	
-	sendEventToEndpoints(event:[name: "switch", value: "on", descriptionText: "Device turned off", type: "digital"] , ep:ep)
+	sendEventToEndpoints(event:[name: "switch", value: "on", descriptionText: "Device turned on", type: "digital"] , ep:ep)
 
 	Integer targetLevel = 100
 	if (params.level) {
@@ -146,7 +132,7 @@ void on(Map params = [cd: null , duration: null , level: null ])
 	}
 	targetLevel = Math.min(Math.max(targetLevel, 1), 100)
 			
-	sendEventToEndpoints(event:[name: "level", value: targetLevel, descriptionText: "Device level set", unit:"%", type: "digital"], ep:ep)
+	sendEventToEndpoints(event:[name: "level", value: targetLevel, descriptionText: "Device level set to ${targetLevel}%.", unit:"%", type: "digital"], ep:ep)
 				
 	sendZwaveValue(value: targetLevel, duration: params.duration, ep: ep)
 }
@@ -154,14 +140,14 @@ void on(Map params = [cd: null , duration: null , level: null ])
 void componentOff(com.hubitat.app.DeviceWrapper cd){ 	off(cd:cd) }
 
 void off(Map params = [cd: null , duration: null ]) {
-	Integer ep = getChildEndpointNumber(params.cd)
+	Integer ep = getChildEndpointNumber(params.cd) // Returns 0 if cd == null 
 	sendEventToEndpoints(event:[name: "switch", value: "off", descriptionText: "Device turned off", type: "digital"], ep:ep)
 	sendZwaveValue(value: 0, duration: params.duration, ep: ep)
 }
 
-void componentSetLevel(com.hubitat.app.DeviceWrapper cd, level, transitionTime = null) {
+void componentSetLevel(com.hubitat.app.DeviceWrapper cd, level, transitionTime = null ) {
 	if (cd.hasCapability("FanControl") ) {
-			setSpeed(cd:cd, level:level, speed:levelToSpeed(level as Integer))
+			setSpeed(cd:cd, level:level, speed:levelToSpeed((Integer) level ))
 		} else { 
 			setLevel(level:level, duration:transitionTime, cd:cd) 
 		}
@@ -228,19 +214,34 @@ Integer speedToLevel(String speed) {
 	return ["off": 0, "low":20, "medium-low":40, "medium":60, "medium-high":80, "high":100].get(speed)
 }
 
+void componentSetSpeed(com.hubitat.app.DeviceWrapper cd, speed) { 
+	Integer targetLevel = speedToLevel(speed)
+	setLevel(level:targetLevel, cd:cd )
+}
+void setSpeed(speed) { setSpeed(speed:speed) }
+void setSpeed(Map params = [speed: null , cd: null ])
+{
+	Integer targetLevel = speedToLevel(params.speed)
+	setLevel(level:targetLevel, cd:(params.cd) )
+}
+
+
+/*
 void componentSetSpeed(com.hubitat.app.DeviceWrapper cd, speed) { setSpeed(speed:speed, cd:cd) }
 void setSpeed(speed, com.hubitat.app.DeviceWrapper cd = null ) { setSpeed(speed:speed, cd:cd) }
 void setSpeed(Map params = [speed: null , level: null , cd: null ])
 {
 	com.hubitat.app.DeviceWrapper originatingDevice = params.cd ?: device
+	if (params.speed.is( null ) ) {
+		log.error "Device ${originatingDevice.displayName}: setSpeed command received without a valid speed setting. Speed setting was ${params.speed}. Returning without doing anything!"
+		return
+	}	
+	
 	Integer ep = params.cd ? (originatingDevice.deviceNetworkId.split("-ep")[-1] as Integer) : 0
 	
 	List<com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep)
 	
-	if (params.speed.is( null ) ) {
-		log.error "Device ${originatingDevice.displayName}: setSpeed command received without a valid speed setting. Speed setting was ${params.speed}. Returning without doing anything!"
-		return
-	}
+
 	
     if (logEnable) log.info "Device ${device.displayName}: received setSpeed(${params.speed}) request from child ${targetDevice.displayName}"
 
@@ -278,3 +279,4 @@ void setSpeed(Map params = [speed: null , level: null , cd: null ])
 		sendZwaveValue(value: targetLevel, duration: 0, ep: ep)
 	}
 }
+*/

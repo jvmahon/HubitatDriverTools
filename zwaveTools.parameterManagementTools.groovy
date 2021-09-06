@@ -57,7 +57,7 @@ void processPendingChanges()
 }
 
 void setParameter(parameterNumber, value = null ) {
-	if (parameterNumber && ( ! value.is( null) )) {
+	if (parameterNumber && ( ! value.is( null ) )) {
 		setParameter(parameterNumber:parameterNumber, value:value)
 	} else if (parameterNumber) {
 		advancedZwaveSend( zwave.configurationV1.configurationGet(parameterNumber: parameterNumber))

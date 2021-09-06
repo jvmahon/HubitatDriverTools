@@ -19,7 +19,7 @@ void zwaveEvent(hubitat.zwave.commands.batteryv3.BatteryReport cmd)  { processBa
 void processBatteryEvent(cmd) 
 {
 	if (cmd.batteryLevel == 0xFF) {
-		batteryEvent = [name: "battery", value:1, unit: "%", descriptionText: "Low Battery Alert. Change now!", deviceType:"ZWV", zwaveOriginalMessage:cmd.format()]
+		batteryEvent = [name: "battery", value:1, unit: "%", descriptionText: "Low Battery Alert. Change now!"]
 	} else {
 		batteryEvent = [name: "battery", value:cmd.batteryLevel, unit: "%", descriptionText: "Battery level report."]
 	}
@@ -27,8 +27,5 @@ void processBatteryEvent(cmd)
 }
 
 void batteryTools_refreshBattery() {
-	if (isZwaveListening() ) { advancedZwaveSend(zwave.batteryV1.batteryGet()) 
-		} else {
-		log.warn "Device ${device.displayName}: Called batteryRefresh on a non-listening node. Code should be updated to add the refresh to a pending command queue when the device wakes up!"
-		}
+	advancedZwaveSend(zwave.batteryV1.batteryGet()) 
 }
