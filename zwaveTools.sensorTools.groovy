@@ -14,16 +14,16 @@ library (
 //////////////////////////////////////////////////////////////////////
 //////        Handle   Binary Sensor     ///////
 //////////////////////////////////////////////////////////////////////
-void sensorTools_refresh(ep = null ) {
+void sensorTools_refresh(Integer ep = null ) {
 	binarySensorRefresh(ep)
 	multilevelSensorRefresh(ep)
 
 }
-void	binarySensorRefresh(ep = null ) {
+void	binarySensorRefresh(Integer ep = null ) {
 	log.warn "Device ${device}: binarySensorRefresh function is not implemented."
 }
 
-void multilevelSensorRefresh(ep) {
+void multilevelSensorRefresh(Integer ep =  null ) {
 	log.warn "Device ${device}: multilevelSensorRefresh function is not implemented."
 }
 
@@ -64,7 +64,7 @@ Map getFormattedZWaveSensorBinaryEvent(def cmd)
 		return returnEvent
 }
 
-void zwaveEvent(hubitat.zwave.commands.sensorbinaryv2.SensorBinaryReport cmd, ep = null )
+void zwaveEvent(hubitat.zwave.commands.sensorbinaryv2.SensorBinaryReport cmd, Integer ep = null )
 {
 	Map thisEvent = getFormattedZWaveSensorBinaryEvent(cmd)
 	sendEventToEndpoints(event:thisEvent, ep:ep)
@@ -123,7 +123,7 @@ Map getFormattedZWaveSensorMultilevelReportEvent(def cmd)
 	return otherSensorReport
 }
 
-void zwaveEvent(hubitat.zwave.commands.sensormultilevelv11.SensorMultilevelReport cmd, ep = null )
+void zwaveEvent(hubitat.zwave.commands.sensormultilevelv11.SensorMultilevelReport cmd, Integer ep = null )
 {
 	Map thisEvent = getFormattedZWaveSensorMultilevelReportEvent(cmd)
 	sendEventToEndpoints(event:thisEvent, ep:ep)

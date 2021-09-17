@@ -10,6 +10,7 @@ library (
 		dependencies: "none",
 		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/globalDataTools.groovy"
 )
+
 import java.util.concurrent.* 
 import groovy.transform.Field
 

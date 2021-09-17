@@ -7,7 +7,10 @@ library (
         description: "Database of Device Characteristics",
         name: "zwaveDeviceDatabase",
         namespace: "zwaveTools",
-        documentationLink: "https://github.com/jvmahon/HubitatDriverTools"
+        documentationLink: "https://github.com/jvmahon/HubitatDriverTools",
+		version: "0.0.1",
+		dependencies: "none",
+		librarySource:"https://raw.githubusercontent.com/jvmahon/HubitatDriverTools/main/zwaveDeviceDatabase.groovy"
 )
 
 Map getThisDeviceDatabaseRecord() {
@@ -77,17 +80,17 @@ Map getThisDeviceDatabaseRecord() {
 				],
 		classVersions: [89:1, 38:1, 39:1, 122:2, 133:2, 112:1, 134:2, 114:2, 115:1, 90:1, 91:1, 94:1, 32:1, 43:1],
 		endpoints:[
-				0:[ children:[	[type:'Generic Component Central Scene Dimmer', 'namespace':'hubitat', childName:"Dimmer 0"],
-								[type:'Generic Component Central Scene Dimmer', 'namespace':'hubitat', childName:"Dimmer 1"]
+				0:[ children:[	[type:'Generic Component Dimmer', 'namespace':'hubitat', childName:"Dimmer 0"],
+								[type:'Generic Component Dimmer', 'namespace':'hubitat', childName:"Dimmer 1"]
 								],
 					classes:[94, 134, 114, 90, 133, 89, 115, 38, 39, 112, 44, 43, 91, 122]]
 				],
 		deviceInputs:[
 			4:[ size:1,	category:"basic", name:"4", title:"(4) Orientation", description:"Control the on/off orientation of the rocker switch", options:[0:"Normal", 1:"Inverted"], type:"enum" ],
 
-			7:[ size:1,	category:"basic", name:"7", title:"(7) Remote Dimming Level Increment", range:"1..99", type:"number"],
+			7:[ size:2,	category:"basic", name:"7", title:"(7) Remote Dimming Level Increment", range:"1..99", type:"number"],
 			8:[ size:2,	category:"basic", name:"8", title:"(8) Remote Dimming Level Duration", description:"Time interval (in tens of ms) of each brightness level change when controlled locally", range:"0..255", type:"number" ],
-			9:[ size:1,	category:"basic", name:"9", title:"(9) Local Dimming Level Increment", range:"1..99", type:"number"],
+			9:[ size:2,	category:"basic", name:"9", title:"(9) Local Dimming Level Increment", range:"1..99", type:"number"],
 			10:[size:2, category:"basic", name:"10", title:"(10) Local Dimming Level Duration", description:"Time interval (in tens of ms) of each brightness level change when controlled locally", range:"0..255", type:"number"]
 		]
 	],
@@ -99,7 +102,7 @@ Map getThisDeviceDatabaseRecord() {
 				],
 		classVersions:[44:1, 89:1, 37:1, 39:1, 0:1, 122:1, 133:1, 112:1, 134:1, 114:1, 115:1, 90:1, 91:1, 94:1, 32:1, 43:1], 
 		endpoints:[	
-					0:[children:[ [type:'Generic Component Central Scene Dimmer', 'namespace':'hubitat']	],
+					0:[children:[ [type:'Generic Component Switch', 'namespace':'hubitat']	],
 						classes:[0, 32, 37, 39, 43, 44, 89, 90, 91, 94, 112, 114, 115, 122, 133, 134]]
 				], 
 		deviceInputs:[
@@ -112,7 +115,7 @@ Map getThisDeviceDatabaseRecord() {
 		fingerprints:[[manufacturer:12, deviceId:12342, deviceType:17479, name:'HomeSeer Technologies: HS-WD200+']], 
 		classVersions:[44:1, 89:1, 38:3, 39:1, 0:1, 122:1, 133:2, 112:1, 134:2, 114:1, 115:1, 90:1, 91:3, 94:1, 32:1, 43:1], 
 		endpoints:[
-					0:[	children:[ [type:'Generic Component Central Scene Dimmer', 'namespace':'hubitat']	],
+					0:[	children:[ [type:'Generic Component Dimmer', 'namespace':'hubitat']	],
 						classes:[0, 32, 38, 39, 43, 44, 89, 90, 91, 94, 112, 114, 115, 122, 133, 134]]
 				], 
 		deviceInputs:[ // Firmware 5.14 and above!
@@ -145,7 +148,7 @@ Map getThisDeviceDatabaseRecord() {
 			], 
 		classVersions:[44:1, 89:1, 37:1, 39:1, 0:1, 122:1, 133:2, 112:1, 134:2, 114:1, 115:1, 90:1, 91:3, 94:1, 32:1, 43:1], 
 		endpoints:[
-					0:[	children:[ [type:'Generic Component Central Scene Switch', 'namespace':'hubitat']	],
+					0:[	children:[ [type:'Generic Component Switch', 'namespace':'hubitat']	],
 						classes:[0, 32, 37, 39, 43, 44, 89, 90, 91, 94, 112, 114, 115, 122, 133, 134]]
 				], 
 		deviceInputs:[
@@ -165,7 +168,7 @@ Map getThisDeviceDatabaseRecord() {
 			], 
 		classVersions:[44:1, 34:1, 89:1, 37:1, 0:1, 122:1, 133:2, 112:1, 134:2, 114:1, 115:1, 90:1, 91:3, 94:1, 32:1, 43:1], 
 		endpoints:[
-				0:[	children:[ [type:'Generic Component Central Scene Switch', 'namespace':'hubitat']	],
+				0:[	children:[ [type:'Generic Component Switch', 'namespace':'hubitat']	],
 					classes:[0, 32, 34, 37, 43, 44, 89, 90, 91, 94, 112, 114, 115, 122, 133, 134]]
 			], 
 		deviceInputs:[
@@ -177,7 +180,7 @@ Map getThisDeviceDatabaseRecord() {
 		fingerprints:[[manufacturer:99, deviceId:12338, deviceType:20292, name:'GE/Jasco Heavy Duty Switch 14285']], 
 		classVersions:[44:1, 89:1, 37:1, 0:1, 122:1, 133:2, 112:1, 134:2, 114:1, 115:1, 90:1, 91:3, 50:3, 94:1, 32:1, 43:1], 
 		endpoints:[
-				0:[	children:[ [type:'Generic Component Central Scene Switch', 'namespace':'hubitat']	],
+				0:[	children:[ [type:'Generic Component Switch', 'namespace':'hubitat']	],
 					classes:[0, 32, 37, 43, 44, 50, 89, 90, 91, 94, 112, 114, 115, 122, 133, 134], 
 					metersSupported:[0, 2, 4, 5, 6]]
 			], 
@@ -277,7 +280,7 @@ Map getThisDeviceDatabaseRecord() {
 		formatVersion:1, 'fingerprints':[['manufacturer':634, 'deviceId':40961, 'deviceType':40960, name:'Zooz: ZEN26']], 
 		classVersions:[89:1, 37:1, 142:3, 0:1, 122:1, 133:2, 112:1, 134:2, 114:1, 115:1, 90:1, 91:3, 94:1, 32:1], 
 		endpoints:[ 0:[
-						children:[ [type:'Generic Component Central Scene Switch', 'namespace':'hubitat']	],
+						children:[ [type:'Generic Component Switch', 'namespace':'hubitat']	],
 						classes:[0, 32, 37, 89, 90, 91, 94, 112, 114, 115, 122, 133, 134, 142]]
 				], 
 		deviceInputs:[
@@ -301,7 +304,7 @@ Map getThisDeviceDatabaseRecord() {
 		classVersions:[0:1, 32:1, 37:1, 38:3, 89:1, 90:1, 91:3, 94:1, 96:2, 112:1, 114:1, 115:1, 122:1, 133:2, 134:2, 142:3, 152:2], 
 		endpoints:[
 					0:[
-						children:[ [type:'Generic Component Central Scene Dimmer', 'namespace':'hubitat']	],
+						children:[ [type:'Generic Component Dimmer', 'namespace':'hubitat']	],
 						classes:[0, 32, 37, 38, 89, 90, 91, 94, 96, 112, 114, 115, 122, 133, 134, 142, 152]], 
 					1:[ children:[[type:'Generic Component Switch', namespace:'hubitat', childName:"Relay Switch"]], 
 						classes:[32, 37, 89, 94, 133, 142]]

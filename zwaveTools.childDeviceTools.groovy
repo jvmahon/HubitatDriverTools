@@ -22,20 +22,20 @@ void deleteUnwantedChildDevices()
 	{ child ->	
 	
 		List childNetIdComponents = child.deviceNetworkId.split("-ep")
-		if ((thisDeviceDataRecord.endpoints.containsKey(childNetIdComponents[1] as Integer)) && (childNetIdComponents[0]?.startsWith(device.deviceNetworkId)) ) {
+		if ((getFullEndpointRecord().containsKey(childNetIdComponents[1] as Integer)) && (childNetIdComponents[0]?.startsWith(device.deviceNetworkId)) ) {
 			return
 		} else {
 			deleteChildDevice(child.deviceNetworkId)
 		}			
 	}
 }
-String getChildNetID(ep, index){
+String getChildNetID(Integer ep, Integer index){
 	return "${device.deviceNetworkId}.child${index}-ep${"${ep}".padLeft(3, "0") }"
 }
 
 void createChildDevices()
 {	
-	thisDeviceDataRecord.endpoints?.each
+	getFullEndpointRecord()?.each
 	{ ep, endpointRecord ->
 		
 		endpointRecord.children?.eachWithIndex { thisChildItem, index ->
@@ -44,7 +44,7 @@ void createChildDevices()
 			if (cd.is( null )) {
 				log.info "Device ${device.displayName}: creating child device: ${childNetworkId} with driver ${thisChildItem.type} and namespace: ${thisChildItem.namespace}."
 				
-				addChildDevice(thisChildItem.namespace, thisChildItem.type, childNetworkId, [name: thisChildItem.childName ?: childNetworkId, isComponent: false])
+				addChildDevice(thisChildItem.namespace, thisChildItem.type, childNetworkId, [name: device.displayName, isComponent: false])
 			} 
 		}
 	}
@@ -52,22 +52,30 @@ void createChildDevices()
 //
 		command "addNewChildDevice", [[name:"Device Name*", type:"STRING"], 
                                       [name:"componentDriverName*",type:"ENUM", constraints:(getDriverChoices()) ], 
-                                      [name:"Endpoint",type:"NUMBER", description:"Endpoint Number, blank or 0 = root" ] ]
+                                      [name:"Endpoint*",type:"NUMBER", description:"Endpoint Number, Use 0 for root (parent) device" ] ]
 
 //
 
 List getDriverChoices() {
 	// Returns the name of the generic component drivers with their namespace listed in parenthesis
+    // log.debug getInstalledDrivers().findAll{it.name.toLowerCase().startsWith("generic component")}.collect{ "${it.name} (${it.namespace})"}.sort()
     return getInstalledDrivers().findAll{it.name.toLowerCase().startsWith("generic component")}.collect{ "${it.name} (${it.namespace})"}.sort()
 }
 
-void addNewChildDevice(newChildName, componentDriverName, endpoint) {
-	log.debug "Driver name is ${newChildName} with driver component type ${componentDriverName} for endpoint ${endpoint}"
+String getChildNetworkId(Integer ep)
+{
+	Integer thisChild = 1
+	String rValue = "${device.displayName}.Child${thisChild}-ep${ep ?: 0}"
+	while ( getChildDevice(rValue) ) { thisChild ++ }
+	return rValue
+}
+void addNewChildDevice(String newChildName, String componentDriverName, endpoint) {
+	// log.debug "Driver name is ${newChildName} with driver component type ${componentDriverName} for endpoint ${endpoint}"
 	Map thisDriver = getInstalledDrivers().find{ "${it.name} (${it.namespace})" == componentDriverName }
 
-	log.debug "selected driver is ${thisDriver}"
-	// String childNetworkId = 
-	// addChildDevice(thisDriver.namespace, thisDriver.name, childNetworkId, [name: newChildName ?:"${device.displayName}-ep${ep}", isComponent: false])
+	// log.debug "selected driver is ${thisDriver}"
+	String thisChildNetworkId = getChildNetworkId((int) (endpoint ?: 0))
+	addChildDevice(thisDriver.namespace, thisDriver.name, thisChildNetworkId, [name: newChildName, isComponent: false])
 }
 
 /////////////////////////////////////////////////////////////////

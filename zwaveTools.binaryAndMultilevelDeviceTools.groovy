@@ -69,60 +69,44 @@ void zwaveEvent(hubitat.zwave.commands.switchbinaryv2.SwitchBinaryReport cmd, ep
 	if (targetDevices.size() < 1) log.error "Device ${device.displayName}: received a Switch Binary Report for a device that does not have a switch attribute. Endpoint ${ep ?: 0}."
 }
 
-void zwaveEvent(hubitat.zwave.commands.switchmultilevelv4.SwitchMultilevelReport cmd, ep = null) { processSwitchReport(cmd, ep) }
-void zwaveEvent(hubitat.zwave.commands.basicv2.BasicReport cmd, ep = null) { processSwitchReport(cmd, ep) }
+void zwaveEvent(hubitat.zwave.commands.switchmultilevelv4.SwitchMultilevelReport cmd, ep = null ) { processSwitchReport(cmd, ep) }
+void zwaveEvent(hubitat.zwave.commands.basicv2.BasicReport cmd, ep = null ) { processSwitchReport(cmd, ep) }
 void processSwitchReport(cmd, ep)
 {
+
 	List<com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep)
 	if ((ep ?: 0 )== 0) targetDevices += device
-	
-	targetDevices.each{ targetDevice ->
-		if (targetDevice.hasAttribute("position")) 
-		{ 
-			targetDevice.sendEvent( name: "position", value: (cmd.value == 99 ? 100 : cmd.value) , unit: "%", descriptionText: "Position set", type: "physical" )
+    
+		Integer targetLevel = ((Integer) cmd.value == 99) ? 100 : cmd.value
+		if (cmd.hasProperty("targetValue") && cmd.targetValue && (cmd.duration > 0 ) ) { 
+				targetLevel = ((Integer)  cmd.targetValue == 99) ? 100 : cmd.targetValue
+			}    
+log.debug "Device ${device.displayName}: Received a switch report ${cmd} resulting in targetLevel ${targetLevel}"
+
+	targetDevices.each{ it ->
+		if (it.hasAttribute("position"))  { 
+			it.sendEvent( name: "position", value: targetLevel , unit: "%", descriptionText: "Position set to ${targetLevel}%", type: "physical" )
 		}
-		if (targetDevice.hasAttribute("windowShade"))
-		{
-			String positionDescription
-			switch (cmd.value as Integer)
-			{
-				case 0:  positionDescription = "closed" ; break
-				case 99:  positionDescription = "open" ; break
-				default : positionDescription = "partially open" ; break
-			}
-			targetDevice.sendEvent( name: "windowShade", value: positionDescription, descriptionText: "Window Shade position set.", type: "physical" )	
+		if (it.hasAttribute("windowShade")) {
+			String positionDescription = [0:"closed", 99:"open", 100:"open"].get(targetLevel, "partially open")
+			it.sendEvent( name: "windowShade", value: positionDescription, descriptionText: "Window Shade position set to ${positionDescription}.", type: "physical" )	
 		}
 
-		if (targetDevice.hasAttribute("level") || targetDevice.hasAttribute("switch") ) // Switch or a fan
+		if (it.hasAttribute("level") || it.hasAttribute("switch") ) // Switch or a fan
 		{
-			Integer targetLevel = 0
-
-			if (cmd.hasProperty("targetValue")) //  Consider duration and target, but only when both are present and in transition with duration > 0 
-			{
-				targetLevel = cmd.targetValue ?: cmd.value
-			} else {
-				targetLevel = cmd.value
-			}
-
-			String priorSwitchState = targetDevice.currentValue("switch")
 			String newSwitchState = ((targetLevel != 0) ? "on" : "off")
-			Integer priorLevel = targetDevice.currentValue("level")
 
-			if ((targetLevel == 99) && (priorLevel == 100)) targetLevel = 100
-
-			if (targetDevice.hasAttribute("switch"))
-			{
-				targetDevice.sendEvent(	name: "switch", value: newSwitchState, descriptionText: "Switch state set", type: "physical" )
-				if (txtEnable) log.info "Device ${targetDevice.displayName} set to ${newSwitchState}."
+			if (it.hasAttribute("switch")) {
+				it.sendEvent(	name: "switch", value: newSwitchState, descriptionText: "Switch state set to ${newSwitchState}", type: "physical" )
+				if (txtEnable) log.info "Device ${it.displayName} set to ${newSwitchState}."
 			}
-			if (targetDevice.hasAttribute("speed")) 
-			{
-				targetDevice.sendEvent( name: "speed", value: levelToSpeed(targetLevel), descriptionText: "Speed set", type: "physical" )
+			if (it.hasAttribute("speed")) {
+				it.sendEvent( name: "speed", value: levelToSpeed(targetLevel), descriptionText: "Speed set", type: "physical" )
 			}
-			if (targetDevice.hasAttribute("level") && (targetLevel != 0 )) // Only handle on values 1-99 here. If device was turned off, that would be handle in the switch state block above.
+			if (it.hasAttribute("level") && (targetLevel != 0 )) // Only handle on values 1-99 here. If device was turned off, that would be handle in the switch state block above.
 			{
-				targetDevice.sendEvent( name: "level", value: targetLevel, descriptionText: "Level set", unit:"%", type: "physical" )
-				if (txtEnable) log.info "Device ${targetDevice.displayName} level set to ${targetLevel}%"		
+				it.sendEvent( name: "level", value: targetLevel, descriptionText: "Level set to ${targetLevel}%.", unit:"%", type: "physical" )
+				if (txtEnable) log.info "Device ${it.displayName} level set to ${targetLevel}%"		
 			}
 		}
 	}
@@ -134,7 +118,7 @@ void on(Map params = [cd: null , duration: null , level: null ])
 {
 	Integer ep = getChildEndpointNumber(params.cd)
 	
-	sendEventToEndpoints(event:[name: "switch", value: "on", descriptionText: "Device turned off", type: "digital"] , ep:ep)
+	sendEventToEndpoints(event:[name: "switch", value: "on", descriptionText: "Device turned on", type: "digital"] , ep:ep)
 
 	Integer targetLevel = 100
 	if (params.level) {
@@ -242,7 +226,7 @@ void setSpeed(Map params = [speed: null , level: null , cd: null ])
 		return
 	}
 	
-    if (logEnable) log.info "Device ${device.displayName}: received setSpeed(${params.speed}) request from child ${targetDevice.displayName}"
+    if (logEnable) log.info "Device ${device.displayName}: received setSpeed(${params.speed}) request from child ${originatingDevice.displayName}"
 
 	String currentOnState = originatingDevice.currentValue("switch")
 	Integer currentLevel = originatingDevice.currentValue("level") // Null if attribute isn't supported.

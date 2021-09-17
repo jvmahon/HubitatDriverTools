@@ -24,7 +24,7 @@ void	meterTools_refresh(ep = null ) {
 	}
 }
 
-void meterTools_refreshScales( List supportedScales, ep = null ) 
+void meterTools_refreshScales( List supportedScales, Integer ep = null ) 
 { // meterSupported is a List of supported scales - e.g., [2, 5, 6]]
 	if (logEnable) log.debug "Device ${device.displayName}: Refreshing meter endpoint ${ep ?: 0} with scales ${supportedScales}"
 
@@ -54,7 +54,7 @@ List<Integer> getMeterScalesAsList(hubitat.zwave.commands.meterv6.MeterSupported
 	return returnScales
 }
 
-void zwaveEvent(hubitat.zwave.commands.meterv6.MeterSupportedReport cmd, ep = null )
+void zwaveEvent(hubitat.zwave.commands.meterv6.MeterSupportedReport cmd, Integer ep = null )
 { 
 
     if ((cmd.meterType as Integer) != 1 ){
@@ -63,7 +63,7 @@ void zwaveEvent(hubitat.zwave.commands.meterv6.MeterSupportedReport cmd, ep = nu
 	}
 	List<Integer> scaleList = getMeterScalesAsList(cmd)
 	
-	thisDeviceDataRecord.endpoints.get((ep ?: 0) as Integer).put("metersSupported", scaleList) // Store in the device record so you don't have to ask device again!
+	getThisEndpointData(ep ?: 0).put("metersSupported", scaleList) // Store in the device record so you don't have to ask device again!
 	meterTools_refreshScales(scaleList, ep)
 }
 
@@ -111,13 +111,15 @@ Map getFormattedZWaveMeterReportEvent(def cmd)
 			meterReport += [previousValue:(cmd.scaledPreviousMeterValue), descriptionText:reportText]
 		}
 		
-	meterReport += [deviceType:"ZWV", zwaveOriginalMessage:cmd.format()]
-
 	return meterReport
 }
 
-void zwaveEvent(hubitat.zwave.commands.meterv6.MeterReport cmd, ep = null )
+void zwaveEvent(hubitat.zwave.commands.meterv6.MeterReport cmd, Integer ep = null )
 {
-	Map thisEvent = getFormattedZWaveMeterReportEvent(cmd)
-	sendEventToEndpoints(event:thisEvent, ep:ep, alwaysSend:["heartbeat"])
+	List<Map> events = []
+	events << getFormattedZWaveMeterReportEvent(cmd)
+	List<com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep)
+	if ((ep ?: 0) == 0) { targetDevices += this }
+	targetDevices.each{ it.parse( events ) }
+
 }

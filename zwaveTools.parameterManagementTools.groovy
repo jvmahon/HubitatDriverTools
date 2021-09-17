@@ -30,17 +30,12 @@ void updated()
 	ConcurrentHashMap<Integer, BigInteger> pendingChanges = getPendingChangeMap()
 
 	Map<Integer, BigInteger>  settingValueMap = getParameterValuesFromInputControls()
-	// if (logEnable ) log.debug "Device ${device.displayName}: Current input control values are: ${settingValueMap}"
 
-	// Find what changed
-	settingValueMap.findAll{k, v -> !(v.is( null ))}.each {k, v ->
-			Boolean changedValue = ((v as BigInteger) != (parameterValueMap.get(k as Integer) as BigInteger)) 
-			if (changedValue) {
-				pendingChanges?.put(k as Integer, v as BigInteger)
-			} else pendingChanges?.remove(k)
-		}
-
-	if (txtEnable) log.info "Device ${device.displayName}: Pending parameter changes are: ${pendingChanges ?: "None"}"
+	pendingChangeMap.putAll(settingValueMap.findAll{it.value} - parameterValueMap)
+	
+	if (txtEnable) log.info "Device ${device.displayName}: new Setting values are ${settingValueMap}, Last Device Parameters were ${parameterValueMap}, Pending parameter changes are: ${pendingChanges ?: "None"}"
+	
+	log.debug "new pending change map is ${getPendingChangeMap()}"
 	
 	processPendingChanges()
 	if (txtEnable) log.info "Device ${device.displayName}: Done updating changed parameters (if any) . . ."
@@ -50,14 +45,15 @@ void updated()
 void processPendingChanges()
 {
 	if (txtEnable) log.info "Device ${device.displayName}: Processing Pending parameter changes: ${getPendingChangeMap()}"
-		pendingChangeMap?.findAll{k, v -> !(v.is( null ))}.each{ k, v ->
-			if (txtEnable) log.info "Updating parameter ${k} to value ${v}"
+		// pendingChangeMap?.findAll{k, v -> !(v.is( null ))}.each{ k, v ->
+			pendingChangeMap?.each{ k, v ->
+                if (txtEnable) log.info "Updating parameter ${k} to value ${v}"
 			setParameter(parameterNumber: k , value: v)
 		}
 }
 
 void setParameter(parameterNumber, value = null ) {
-	if (parameterNumber && ( ! value.is( null) )) {
+	if (parameterNumber && ( ! value.is( null ) )) {
 		setParameter(parameterNumber:parameterNumber, value:value)
 	} else if (parameterNumber) {
 		advancedZwaveSend( zwave.configurationV1.configurationGet(parameterNumber: parameterNumber))
@@ -125,17 +121,11 @@ Map<Integer, BigInteger> getParameterValuesFromDevice()
 	
 	ConcurrentHashMap inputs = getDeviceInputs()	
 	
-	log.debug "In function getParameterValuesFromDevice, parameter values are: ${parameterValues}. Size is: ${parameterValues.size()}. Inputs size is ${inputs.size()}."
-	
 	if (!inputs) return null
 
-	if ((parameterValues?.size() as Integer) == (inputs?.size() as Integer) ) 
-	{
-		// if (logEnable) log.debug "Device ${device.displayName}: In Function getParameterValuesFromDevice, returning Previously retrieved Parameter values: ${parameterValues}"
-
+	if ((parameterValues?.size() as Integer) == (inputs?.size() as Integer) )  {
 		return parameterValues
 	} else {
-		// if (logEnable) log.debug "Getting missing parameter values"
 		Integer waitTime = 1
 		inputs.eachWithIndex 
 			{ k, v, i ->
@@ -157,7 +147,8 @@ Map<Integer, BigInteger> getParameterValuesFromDevice()
 
 void zwaveEvent(hubitat.zwave.commands.configurationv2.ConfigurationReport  cmd)
 { 
-	if (logEnable) log.debug "Device ${device.displayName}: Received a configuration report ${cmd}."
+	log.debug "Received a configurationReport ${cmd}"
+	
 	ConcurrentHashMap parameterValues = allDevicesParameterValues.get(device.deviceNetworkId, new ConcurrentHashMap<Integer, BigInteger>(32, 0.75, 1))
 	BigInteger newValue = (cmd.size == 1) ? cmd.configurationValue[0] : cmd.scaledConfigurationValue			
 	if (newValue < 0) log.warn "Device ${device.displayName}: Negative configuration value reported for configuration parameter ${cmd.parameterNumber}."
