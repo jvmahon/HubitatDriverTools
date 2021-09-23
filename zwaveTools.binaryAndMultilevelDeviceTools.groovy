@@ -81,8 +81,6 @@ void processSwitchReport(cmd, ep)
 		if (cmd.hasProperty("targetValue") && cmd.targetValue && (cmd.duration > 0 ) ) { 
 				targetLevel = ((Integer)  cmd.targetValue == 99) ? 100 : cmd.targetValue
 			}    
-log.debug "Device ${device.displayName}: Received a switch report ${cmd} resulting in targetLevel ${targetLevel}"
-
 	targetDevices.each{ it ->
 		if (it.hasAttribute("position"))  { 
 			it.sendEvent( name: "position", value: targetLevel , unit: "%", descriptionText: "Position set to ${targetLevel}%", type: "physical" )
