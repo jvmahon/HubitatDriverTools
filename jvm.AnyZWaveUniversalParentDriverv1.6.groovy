@@ -29,10 +29,10 @@ metadata {
 		capability "Initialize"
 		capability "Refresh"
 
-		attribute "pushed", "number"
+		capability "PushableButton"
 		capability "HoldableButton"
 		capability "ReleasableButton"
-		attribute "doubleTapped", "number"	
+		capability "DoubleTapableButton"	
 		attribute "multiTapButton", "number"
         // capability "Sensor"				
         // capability "MotionSensor"
