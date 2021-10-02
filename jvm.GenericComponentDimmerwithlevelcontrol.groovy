@@ -52,7 +52,7 @@ void off() {
 
 
 void setLevel(level) {
-	if (level < (minDimLevel as Integer)) {
+	if ((level > 0) && (level < (minDimLevel as Integer))) { // Allow 0 to be sent to turn off device, else level must be at least the minimum.
 		if (txtEnable) log.info "Device ${device.displayName}: tried to set a level ${level} which is below the minimum allowed value for this device of ${minDimLevel}. Setting to ${minDimLevel} instead."
 		parent?.componentSetLevel(this.device, (minDimLevel as Integer))
 
@@ -62,7 +62,7 @@ void setLevel(level) {
 }
 
 void setLevel(level, ramp) {
-	if (level < (minDimLevel as Integer)) {
+	if ((level > 0) && (level < (minDimLevel as Integer))) { // Allow 0 to be sent to turn off device, else level must be at least the minimum.
 		if (txtEnable) log.info "Device ${device.displayName}: tried to set a level ${level} which is below the minimum allowed value for this device of ${minDimLevel}. Setting to ${minDimLevel} instead."
 		parent?.componentSetLevel(this.device, (minDimLevel as Integer), ramp)
 
