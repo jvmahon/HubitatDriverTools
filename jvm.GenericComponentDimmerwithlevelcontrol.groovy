@@ -31,7 +31,8 @@ void parse(List description) {
     description.each {
         if (hasAttribute (it.name)) {
             if (txtEnable) log.info it.descriptionText
-			if ((it.name == "level") && (it.value < (minDimLevel as Integer))) {
+			if ((it.name == "level") && (it.value < (minDimLevel as Integer)) && (it.value > 0)) {
+					
 			        if (txtEnable) log.info "Device ${device.displayName}: tried to set a level ${it.value} which is below the minimum allowed value for this device of ${minDimLevel}"
 
 					parent?.componentSetLevel(this.device, (minDimLevel as Integer))
