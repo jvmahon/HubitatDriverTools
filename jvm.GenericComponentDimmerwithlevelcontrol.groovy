@@ -29,7 +29,7 @@ void parse(String description) { log.warn "parse(String description) not impleme
 
 void parse(List description) {
     description.each {
-        if (hasAttribute (it.name)) {
+        if (device.hasAttribute (it.name)) {
             if (txtEnable) log.info it.descriptionText
 			if ((it.name == "level") && (it.value < (minDimLevel as Integer)) && (it.value > 0)) {
 					
