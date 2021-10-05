@@ -29,9 +29,7 @@ void deleteUnwantedChildDevices()
 		}			
 	}
 }
-String getChildNetID(Integer ep, Integer index){
-	return "${device.deviceNetworkId}.child${index}-ep${"${ep}".padLeft(3, "0") }"
-}
+
 
 void createChildDevices()
 {	
@@ -62,11 +60,19 @@ List getDriverChoices() {
     return getInstalledDrivers().findAll{it.name.toLowerCase().startsWith("generic component")}.collect{ "${it.name} (${it.namespace})"}.sort()
 }
 
-String getChildNetworkId(Integer ep)
+String getChildNetID(Integer ep, Integer index){
+	return "${device.deviceNetworkId}.child${index}-ep${"${ep}".padLeft(3, "0") }"
+}
+
+String getNextChild(Integer ep)
 {
 	Integer thisChild = 1
-	String rValue = "${device.displayName}.Child${thisChild}-ep${ep ?: 0}"
-	while ( getChildDevice(rValue) ) { thisChild ++ }
+	String rValue = getChildNetID(ep, thisChild)
+
+	while ( getChildDevice(rValue) ) { 
+			thisChild ++ 
+			rValue = getChildNetID(ep, thisChild)
+		}
 	return rValue
 }
 void addNewChildDevice(String newChildName, String componentDriverName, endpoint) {
@@ -74,7 +80,7 @@ void addNewChildDevice(String newChildName, String componentDriverName, endpoint
 	Map thisDriver = getInstalledDrivers().find{ "${it.name} (${it.namespace})" == componentDriverName }
 
 	// log.debug "selected driver is ${thisDriver}"
-	String thisChildNetworkId = getChildNetworkId((int) (endpoint ?: 0))
+	String thisChildNetworkId = getNextChild((int) (endpoint ?: 0))
 	addChildDevice(thisDriver.namespace, thisDriver.name, thisChildNetworkId, [name: newChildName, isComponent: false])
 }
 

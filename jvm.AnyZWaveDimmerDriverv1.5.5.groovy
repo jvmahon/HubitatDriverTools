@@ -25,7 +25,7 @@ Integer getS2RetryPeriod() { return 1500}
 
 
 metadata {
-	definition (name: "Any Z-Wave Dimmer Driver v1.5.5",namespace: "jvm", author: "jvm") {
+	definition (name: "Any Z-Wave Dimmer Driver v1.5.5",namespace: "jvm", author: "jvm", singleThreaded:false) {
 		capability "Initialize"
 		capability "Refresh"
 

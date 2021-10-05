@@ -63,7 +63,7 @@ List<Integer> getNotificationTypesList(def cmd) {
 	if (cmd.gasAlarm)			notificationTypes += 18 // Gas Alarm
 	if (cmd.pestControl)		notificationTypes += 19 // Pest Control
 	if (cmd.lightSensor)		notificationTypes += 20 // Light Sensor
-	if (cmd.waterQuality)		notificationTypes += 21 // Water Quality
+	if (cmd.waterQualityMonitoring)		notificationTypes += 21 // Water Quality
 	if (cmd.homeMonitoring)		notificationTypes += 22 // Home Monitoring
 }
 

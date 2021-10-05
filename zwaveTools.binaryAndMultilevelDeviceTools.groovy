@@ -59,7 +59,7 @@ void zwaveEvent(hubitat.zwave.commands.switchbinaryv2.SwitchBinaryReport cmd, ep
 	String newSwitchState = ((cmd.value > 0) ? "on" : "off")
 	Map switchEvent = [name: "switch", value: newSwitchState, descriptionText: "Switch set", type: "physical"]
 	
-	List <com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep)?.findAll{it.hasAttribute("switch")}
+	List <com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep ?: 0)?.findAll{it.hasAttribute("switch")}
 	if (((ep ?: 0 )== 0) && device.hasAttribute ("switch")) targetDevices += device
 	
 	targetDevices.each { it.sendEvent(switchEvent)
