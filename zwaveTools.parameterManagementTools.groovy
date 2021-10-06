@@ -35,7 +35,7 @@ void updated()
 	
 	if (txtEnable) log.info "Device ${device.displayName}: new Setting values are ${settingValueMap}, Last Device Parameters were ${parameterValueMap}, Pending parameter changes are: ${pendingChanges ?: "None"}"
 	
-	log.debug "new pending change map is ${getPendingChangeMap()}"
+	if (logEnable) log.debug "new pending change map is ${getPendingChangeMap()}"
 	
 	processPendingChanges()
 	if (txtEnable) log.info "Device ${device.displayName}: Done updating changed parameters (if any) . . ."
@@ -147,7 +147,7 @@ Map<Integer, BigInteger> getParameterValuesFromDevice()
 
 void zwaveEvent(hubitat.zwave.commands.configurationv2.ConfigurationReport  cmd)
 { 
-	log.debug "Received a configurationReport ${cmd}"
+	if (logEnable) log.debug "Received a configurationReport ${cmd}"
 	
 	ConcurrentHashMap parameterValues = allDevicesParameterValues.get(device.deviceNetworkId, new ConcurrentHashMap<Integer, BigInteger>(32, 0.75, 1))
 	BigInteger newValue = (cmd.size == 1) ? cmd.configurationValue[0] : cmd.scaledConfigurationValue			

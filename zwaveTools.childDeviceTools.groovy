@@ -42,7 +42,7 @@ void createChildDevices()
 			if (cd.is( null )) {
 				log.info "Device ${device.displayName}: creating child device: ${childNetworkId} with driver ${thisChildItem.type} and namespace: ${thisChildItem.namespace}."
 				
-				addChildDevice(thisChildItem.namespace, thisChildItem.type, childNetworkId, [name: device.displayName, isComponent: false])
+				addChildDevice(thisChildItem.namespace, thisChildItem.type, childNetworkId, [name: thisChildItem.childName ?: device.displayName, isComponent: false])
 			} 
 		}
 	}

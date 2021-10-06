@@ -15,9 +15,8 @@ Map reparseDeviceData(deviceData = null )
 {
 	// When data is stored in the state.deviceRecord it can lose its original data types, so need to restore after reading the data froms state.
 	// This is only done during the startup / initialize routine and results are stored in a global variable, so it is only done for the first device of a particular model.
-
-	if (deviceData.is( null )) return null
 	Map reparsed = [formatVersion: null , fingerprints: null , classVersions: null ,endpoints: null , deviceInputs: null ]
+	if (deviceData.is( null )) return null
 
 	reparsed.formatVersion = deviceData.formatVersion as Integer
 	
@@ -136,14 +135,19 @@ Map getEndpointClassData(endpointRecord)
 
 	endpointRecord.each{ it ->
 			List thisEndpointClasses =  it.commandclass.collect{thisClass -> classMappings.get(thisClass.commandclass_name, 0) as Integer }
-			
+
+				String childDriver = getChildComponentDriver(thisEndpointClasses)
+				endpointClassMap.put((it.number as Integer), [children:[[type:childDriver, namespace:"hubitat", childName:"RenameMe - device for endpoint: ${it.number}"]], classes:(thisEndpointClasses)])
+		
+			/*
 			if (it.number == 0) {
 				endpointClassMap.put((it.number as Integer), [classes:(thisEndpointClasses)])
 				return
 			} else {
 				String childDriver = getChildComponentDriver(thisEndpointClasses)
-				endpointClassMap.put((it.number as Integer), [children:[[type:childDriver, namespace:"hubitat"]], classes:(thisEndpointClasses)])
+				endpointClassMap.put((it.number as Integer), [children:[[type:childDriver, namespace:"hubitat", childName:"RenameMe - device for endpoint: ${it.number}"]], classes:(thisEndpointClasses)])
 			}
+			*/
 		}
     return endpointClassMap
 }

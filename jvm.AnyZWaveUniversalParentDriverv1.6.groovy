@@ -161,8 +161,8 @@ void initialize()
 		state.remove("deviceRecord") // If a device data record was added to the database, delete if it was previously from openSmartHouse.
 		dataRecordByProductType.putAll(reparseDeviceData(localDataRecord)) // Store in the Global ConcurrentHashMap
 	} else if ( state.deviceRecord && getDataRecordByProductType().deviceRecord.is( null ) ) { 
-		// Put in the Global ConcurrentHashMap if it exist locally.
-		dataRecordByProductType.putAll(reparseDeviceData(localDataRecord)) // Store in the Global ConcurrentHashMap
+		// Put in the Global ConcurrentHashMap if it exists in state.
+		dataRecordByProductType.putAll(reparseDeviceData(state.deviceRecord)) // Store in the Global ConcurrentHashMap
 	} else if ( state.deviceRecord.is( null ) && getDataRecordByProductType().deviceRecord ) {
 		// Data record doesn't exist in state, but it is in the concurrentHashMap - So store in state rather than re-retrieve
 		state.deviceRecord = dataRecordByProductType.deviceRecord
@@ -170,7 +170,7 @@ void initialize()
 		// Data record doesn't exist - get it and store in the global data record
 		Map createdRecord = openSmarthouseCreateDeviceDataRecord() 
 		state.deviceRecord = createdRecord
-		if (createdRecord) dataRecordByProductType.putAll(reparseDeviceData(localDataRecord))
+		if (createdRecord) dataRecordByProductType.putAll(reparseDeviceData(createdRecord))
 	}
 	///////////////////////////////////////////////////////////////////////////////////
 	//////////          Done with Device Data Record Management      //////////////////
