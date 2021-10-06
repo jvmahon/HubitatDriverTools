@@ -80,9 +80,7 @@ Map getThisDeviceDatabaseRecord() {
 				],
 		classVersions: [89:1, 38:1, 39:1, 122:2, 133:2, 112:1, 134:2, 114:2, 115:1, 90:1, 91:1, 94:1, 32:1, 43:1],
 		endpoints:[
-				0:[ children:[	[type:'Generic Component Dimmer', 'namespace':'hubitat', childName:"Dimmer 0"],
-								[type:'Generic Component Dimmer', 'namespace':'hubitat', childName:"Dimmer 1"]
-								],
+				0:[ children:[	[type:'Generic Component Dimmer', 'namespace':'hubitat']],
 					classes:[94, 134, 114, 90, 133, 89, 115, 38, 39, 112, 44, 43, 91, 122]]
 				],
 		deviceInputs:[
@@ -198,7 +196,8 @@ Map getThisDeviceDatabaseRecord() {
 			], 
 		classVersions:[0:1, 32:1, 37:1, 50:3, 89:1, 90:1, 94:1, 96:2, 112:1, 113:8, 114:1, 115:1, 122:1, 133:2, 134:2, 142:3], 
 		endpoints:[
-				0:[	classes:[0, 32, 37, 50, 89, 90, 94, 96, 112, 113, 114, 115, 122, 133, 134, 142]], 
+				0:[	children:[[type:'Generic Component Metering Switch', 'namespace':'hubitat', childName:"ZEN25 Double Outlet"]],
+					classes:[0, 32, 37, 50, 89, 90, 94, 96, 112, 113, 114, 115, 122, 133, 134, 142]], 
 				1:[ children:[[type:'Generic Component Metering Switch', 'namespace':'hubitat', childName:"ZEN25 Left Outlet"]], 
 					classes:[32, 37, 50, 89, 94, 133, 142], 
 					metersSupported:[0, 2, 4, 5]], 

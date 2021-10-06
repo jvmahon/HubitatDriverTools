@@ -28,6 +28,12 @@ metadata {
 	definition (name: "Any Z-Wave Universal Parent Driver v1.6",namespace: "jvm", author: "jvm", singleThreaded:false) {
 		capability "Initialize"
 		capability "Refresh"
+	
+	// Uncomment capabilities that you want to expose in the parent.
+	// Otherwise, all capabilities / attributes are by adding child devices.
+        // capability "Actuator"
+		// capability "Switch"
+		// capability "SwitchLevel"		
 
 		capability "PushableButton"
 		capability "HoldableButton"
