@@ -161,8 +161,8 @@ void initialize()
 		state.remove("deviceRecord") // If a device data record was added to the database, delete if it was previously from openSmartHouse.
 		dataRecordByProductType.putAll(reparseDeviceData(localDataRecord)) // Store in the Global ConcurrentHashMap
 	} else if ( state.deviceRecord && getDataRecordByProductType().deviceRecord.is( null ) ) { 
-		// Put in the Global ConcurrentHashMap if it exist locally.
-		dataRecordByProductType.putAll(reparseDeviceData(localDataRecord)) // Store in the Global ConcurrentHashMap
+		// Put in the Global ConcurrentHashMap if it exists in state.
+		dataRecordByProductType.putAll(reparseDeviceData(state.deviceRecord)) // Store in the Global ConcurrentHashMap
 	} else if ( state.deviceRecord.is( null ) && getDataRecordByProductType().deviceRecord ) {
 		// Data record doesn't exist in state, but it is in the concurrentHashMap - So store in state rather than re-retrieve
 		state.deviceRecord = dataRecordByProductType.deviceRecord
@@ -170,7 +170,7 @@ void initialize()
 		// Data record doesn't exist - get it and store in the global data record
 		Map createdRecord = openSmarthouseCreateDeviceDataRecord() 
 		state.deviceRecord = createdRecord
-		if (createdRecord) dataRecordByProductType.putAll(reparseDeviceData(localDataRecord))
+		if (createdRecord) dataRecordByProductType.putAll(reparseDeviceData(createdRecord))
 	}
 	///////////////////////////////////////////////////////////////////////////////////
 	//////////          Done with Device Data Record Management      //////////////////
@@ -2035,316 +2035,320 @@ Map reparseDeviceData(deviceData = null ) // library marker zwaveTools.openSmart
 { // library marker zwaveTools.openSmarthouseTools, line 15
 	// When data is stored in the state.deviceRecord it can lose its original data types, so need to restore after reading the data froms state. // library marker zwaveTools.openSmarthouseTools, line 16
 	// This is only done during the startup / initialize routine and results are stored in a global variable, so it is only done for the first device of a particular model. // library marker zwaveTools.openSmarthouseTools, line 17
-
+	Map reparsed = [formatVersion: null , fingerprints: null , classVersions: null ,endpoints: null , deviceInputs: null ] // library marker zwaveTools.openSmarthouseTools, line 18
 	if (deviceData.is( null )) return null // library marker zwaveTools.openSmarthouseTools, line 19
-	Map reparsed = [formatVersion: null , fingerprints: null , classVersions: null ,endpoints: null , deviceInputs: null ] // library marker zwaveTools.openSmarthouseTools, line 20
 
-	reparsed.formatVersion = deviceData.formatVersion as Integer // library marker zwaveTools.openSmarthouseTools, line 22
+	reparsed.formatVersion = deviceData.formatVersion as Integer // library marker zwaveTools.openSmarthouseTools, line 21
 
-	if (deviceData.endpoints) { // library marker zwaveTools.openSmarthouseTools, line 24
-		reparsed.endpoints = deviceData.endpoints.collectEntries{k, v -> [(k as Integer), (v)] } // library marker zwaveTools.openSmarthouseTools, line 25
-	} else { // library marker zwaveTools.openSmarthouseTools, line 26
-		List<Integer> endpoint0Classes = getDataValue("inClusters")?.split(",").collect{ hexStrToUnsignedInt(it) as Integer } // library marker zwaveTools.openSmarthouseTools, line 27
-						endpoint0Classes += getDataValue("secureInClusters")?.split(",").collect{ hexStrToUnsignedInt(it) as Integer } // library marker zwaveTools.openSmarthouseTools, line 28
-		if (endpoint0Classes.contains(0x60)) // library marker zwaveTools.openSmarthouseTools, line 29
-			{ // library marker zwaveTools.openSmarthouseTools, line 30
-				log.error "Device ${device.displayName}: Error in function reparseDeviceData. Missing endpoint data for a multi-endpoint device. This usually occurs if there is a locally stored data record which does not properly specify the endpoint data. This device may still function, but only for the root device." // library marker zwaveTools.openSmarthouseTools, line 31
-			} // library marker zwaveTools.openSmarthouseTools, line 32
-		reparsed.endpoints = [0:[classes:(endpoint0Classes)]] // library marker zwaveTools.openSmarthouseTools, line 33
-	} // library marker zwaveTools.openSmarthouseTools, line 34
+	if (deviceData.endpoints) { // library marker zwaveTools.openSmarthouseTools, line 23
+		reparsed.endpoints = deviceData.endpoints.collectEntries{k, v -> [(k as Integer), (v)] } // library marker zwaveTools.openSmarthouseTools, line 24
+	} else { // library marker zwaveTools.openSmarthouseTools, line 25
+		List<Integer> endpoint0Classes = getDataValue("inClusters")?.split(",").collect{ hexStrToUnsignedInt(it) as Integer } // library marker zwaveTools.openSmarthouseTools, line 26
+						endpoint0Classes += getDataValue("secureInClusters")?.split(",").collect{ hexStrToUnsignedInt(it) as Integer } // library marker zwaveTools.openSmarthouseTools, line 27
+		if (endpoint0Classes.contains(0x60)) // library marker zwaveTools.openSmarthouseTools, line 28
+			{ // library marker zwaveTools.openSmarthouseTools, line 29
+				log.error "Device ${device.displayName}: Error in function reparseDeviceData. Missing endpoint data for a multi-endpoint device. This usually occurs if there is a locally stored data record which does not properly specify the endpoint data. This device may still function, but only for the root device." // library marker zwaveTools.openSmarthouseTools, line 30
+			} // library marker zwaveTools.openSmarthouseTools, line 31
+		reparsed.endpoints = [0:[classes:(endpoint0Classes)]] // library marker zwaveTools.openSmarthouseTools, line 32
+	} // library marker zwaveTools.openSmarthouseTools, line 33
 
-	reparsed.deviceInputs = deviceData.deviceInputs?.collectEntries{ k, v -> [(k as Integer), (v)] } // library marker zwaveTools.openSmarthouseTools, line 36
-	reparsed.fingerprints = deviceData.fingerprints?.collect{ it -> [manufacturer:(it.manufacturer as Integer), deviceId:(it.deviceId as Integer),  deviceType:(it.deviceType as Integer), name:(it.name)] } // library marker zwaveTools.openSmarthouseTools, line 37
-	if (deviceData.classVersions) reparsed.classVersions = deviceData.classVersions?.collectEntries{ k, v -> [(k as Integer), (v as Integer)] } // library marker zwaveTools.openSmarthouseTools, line 38
-	if (logEnable) "Device ${device.displayName}: Reparsed data is ${reparsed}" // library marker zwaveTools.openSmarthouseTools, line 39
-	return reparsed // library marker zwaveTools.openSmarthouseTools, line 40
-} // library marker zwaveTools.openSmarthouseTools, line 41
+	reparsed.deviceInputs = deviceData.deviceInputs?.collectEntries{ k, v -> [(k as Integer), (v)] } // library marker zwaveTools.openSmarthouseTools, line 35
+	reparsed.fingerprints = deviceData.fingerprints?.collect{ it -> [manufacturer:(it.manufacturer as Integer), deviceId:(it.deviceId as Integer),  deviceType:(it.deviceType as Integer), name:(it.name)] } // library marker zwaveTools.openSmarthouseTools, line 36
+	if (deviceData.classVersions) reparsed.classVersions = deviceData.classVersions?.collectEntries{ k, v -> [(k as Integer), (v as Integer)] } // library marker zwaveTools.openSmarthouseTools, line 37
+	if (logEnable) "Device ${device.displayName}: Reparsed data is ${reparsed}" // library marker zwaveTools.openSmarthouseTools, line 38
+	return reparsed // library marker zwaveTools.openSmarthouseTools, line 39
+} // library marker zwaveTools.openSmarthouseTools, line 40
 
 
-Map getSpecificRecord(id) // library marker zwaveTools.openSmarthouseTools, line 44
-{ // library marker zwaveTools.openSmarthouseTools, line 45
-    String queryByDatabaseID= "http://www.opensmarthouse.org/dmxConnect/api/zwavedatabase/device/read.php?device_id=${id}"     // library marker zwaveTools.openSmarthouseTools, line 46
+Map getSpecificRecord(id) // library marker zwaveTools.openSmarthouseTools, line 43
+{ // library marker zwaveTools.openSmarthouseTools, line 44
+    String queryByDatabaseID= "http://www.opensmarthouse.org/dmxConnect/api/zwavedatabase/device/read.php?device_id=${id}"     // library marker zwaveTools.openSmarthouseTools, line 45
 
-	httpGet([uri:queryByDatabaseID]) { resp->  // library marker zwaveTools.openSmarthouseTools, line 48
-				return resp?.data // library marker zwaveTools.openSmarthouseTools, line 49
-			} // library marker zwaveTools.openSmarthouseTools, line 50
-} // library marker zwaveTools.openSmarthouseTools, line 51
+	httpGet([uri:queryByDatabaseID]) { resp->  // library marker zwaveTools.openSmarthouseTools, line 47
+				return resp?.data // library marker zwaveTools.openSmarthouseTools, line 48
+			} // library marker zwaveTools.openSmarthouseTools, line 49
+} // library marker zwaveTools.openSmarthouseTools, line 50
 
-Map openSmarthouseCreateDeviceDataRecord() // library marker zwaveTools.openSmarthouseTools, line 53
-{ // library marker zwaveTools.openSmarthouseTools, line 54
-	Map firstQueryRecord = getOpenSmartHouseData(); // library marker zwaveTools.openSmarthouseTools, line 55
+Map openSmarthouseCreateDeviceDataRecord() // library marker zwaveTools.openSmarthouseTools, line 52
+{ // library marker zwaveTools.openSmarthouseTools, line 53
+	Map firstQueryRecord = getOpenSmartHouseData(); // library marker zwaveTools.openSmarthouseTools, line 54
 
-	if (firstQueryRecord.is( null )) { // library marker zwaveTools.openSmarthouseTools, line 57
-	log.error "Device ${device.displayName}: Failed to retrieve data record identifier for device from OpenSmartHouse Z-Wave database. OpenSmartHouse database may be unavailable. Try again later or check database to see if your device can be found in the database." // library marker zwaveTools.openSmarthouseTools, line 58
-	} // library marker zwaveTools.openSmarthouseTools, line 59
+	if (firstQueryRecord.is( null )) { // library marker zwaveTools.openSmarthouseTools, line 56
+	log.error "Device ${device.displayName}: Failed to retrieve data record identifier for device from OpenSmartHouse Z-Wave database. OpenSmartHouse database may be unavailable. Try again later or check database to see if your device can be found in the database." // library marker zwaveTools.openSmarthouseTools, line 57
+	} // library marker zwaveTools.openSmarthouseTools, line 58
 
-	Map thisRecord = getSpecificRecord(firstQueryRecord.id) // library marker zwaveTools.openSmarthouseTools, line 61
+	Map thisRecord = getSpecificRecord(firstQueryRecord.id) // library marker zwaveTools.openSmarthouseTools, line 60
 
-	if (thisRecord.is( null )) { // library marker zwaveTools.openSmarthouseTools, line 63
-	log.error "Device ${device.displayName}: Failed to retrieve data record for device from OpenSmartHouse Z-Wave database. OpenSmartHouse database may be unavailable. Try again later or check database to see if your device can be found in the database." // library marker zwaveTools.openSmarthouseTools, line 64
-	} // library marker zwaveTools.openSmarthouseTools, line 65
+	if (thisRecord.is( null )) { // library marker zwaveTools.openSmarthouseTools, line 62
+	log.error "Device ${device.displayName}: Failed to retrieve data record for device from OpenSmartHouse Z-Wave database. OpenSmartHouse database may be unavailable. Try again later or check database to see if your device can be found in the database." // library marker zwaveTools.openSmarthouseTools, line 63
+	} // library marker zwaveTools.openSmarthouseTools, line 64
 
-	Map deviceRecord = [fingerprints: [] , endpoints: [:] , deviceInputs: null ] // library marker zwaveTools.openSmarthouseTools, line 67
-	Map thisFingerprint = [manufacturer: (getDataValue("manufacturer")?.toInteger()) , deviceId: (getDataValue("deviceId")?.toInteger()) ,  deviceType: (getDataValue("deviceType")?.toInteger()) ] // library marker zwaveTools.openSmarthouseTools, line 68
-	thisFingerprint.name = "${firstQueryRecord.manufacturer_name}: ${firstQueryRecord.label}" as String // library marker zwaveTools.openSmarthouseTools, line 69
+	Map deviceRecord = [fingerprints: [] , endpoints: [:] , deviceInputs: null ] // library marker zwaveTools.openSmarthouseTools, line 66
+	Map thisFingerprint = [manufacturer: (getDataValue("manufacturer")?.toInteger()) , deviceId: (getDataValue("deviceId")?.toInteger()) ,  deviceType: (getDataValue("deviceType")?.toInteger()) ] // library marker zwaveTools.openSmarthouseTools, line 67
+	thisFingerprint.name = "${firstQueryRecord.manufacturer_name}: ${firstQueryRecord.label}" as String // library marker zwaveTools.openSmarthouseTools, line 68
 
-	deviceRecord.fingerprints.add(thisFingerprint ) // library marker zwaveTools.openSmarthouseTools, line 71
+	deviceRecord.fingerprints.add(thisFingerprint ) // library marker zwaveTools.openSmarthouseTools, line 70
 
-	deviceRecord.deviceInputs = createInputControls(thisRecord.parameters) // library marker zwaveTools.openSmarthouseTools, line 73
-	deviceRecord.classVersions = getRootClassData(thisRecord.endpoints) // library marker zwaveTools.openSmarthouseTools, line 74
-	deviceRecord.endpoints = getEndpointClassData(thisRecord.endpoints) // library marker zwaveTools.openSmarthouseTools, line 75
-	deviceRecord.formatVersion = dataRecordFormatVersion // library marker zwaveTools.openSmarthouseTools, line 76
+	deviceRecord.deviceInputs = createInputControls(thisRecord.parameters) // library marker zwaveTools.openSmarthouseTools, line 72
+	deviceRecord.classVersions = getRootClassData(thisRecord.endpoints) // library marker zwaveTools.openSmarthouseTools, line 73
+	deviceRecord.endpoints = getEndpointClassData(thisRecord.endpoints) // library marker zwaveTools.openSmarthouseTools, line 74
+	deviceRecord.formatVersion = dataRecordFormatVersion // library marker zwaveTools.openSmarthouseTools, line 75
 
-	return deviceRecord // library marker zwaveTools.openSmarthouseTools, line 78
-} // library marker zwaveTools.openSmarthouseTools, line 79
+	return deviceRecord // library marker zwaveTools.openSmarthouseTools, line 77
+} // library marker zwaveTools.openSmarthouseTools, line 78
 
-// List getOpenSmartHouseData() // library marker zwaveTools.openSmarthouseTools, line 81
-Map getOpenSmartHouseData() // library marker zwaveTools.openSmarthouseTools, line 82
-{ // library marker zwaveTools.openSmarthouseTools, line 83
-	if (txtEnable) log.info "Getting data from OpenSmartHouse for device ${device.displayName}." // library marker zwaveTools.openSmarthouseTools, line 84
-	String manufacturer = 	hubitat.helper.HexUtils.integerToHexString( device.getDataValue("manufacturer").toInteger(), 2) // library marker zwaveTools.openSmarthouseTools, line 85
-	String deviceType = 	hubitat.helper.HexUtils.integerToHexString( device.getDataValue("deviceType").toInteger(), 2) // library marker zwaveTools.openSmarthouseTools, line 86
-	String deviceID = 		hubitat.helper.HexUtils.integerToHexString( device.getDataValue("deviceId").toInteger(), 2) // library marker zwaveTools.openSmarthouseTools, line 87
+// List getOpenSmartHouseData() // library marker zwaveTools.openSmarthouseTools, line 80
+Map getOpenSmartHouseData() // library marker zwaveTools.openSmarthouseTools, line 81
+{ // library marker zwaveTools.openSmarthouseTools, line 82
+	if (txtEnable) log.info "Getting data from OpenSmartHouse for device ${device.displayName}." // library marker zwaveTools.openSmarthouseTools, line 83
+	String manufacturer = 	hubitat.helper.HexUtils.integerToHexString( device.getDataValue("manufacturer").toInteger(), 2) // library marker zwaveTools.openSmarthouseTools, line 84
+	String deviceType = 	hubitat.helper.HexUtils.integerToHexString( device.getDataValue("deviceType").toInteger(), 2) // library marker zwaveTools.openSmarthouseTools, line 85
+	String deviceID = 		hubitat.helper.HexUtils.integerToHexString( device.getDataValue("deviceId").toInteger(), 2) // library marker zwaveTools.openSmarthouseTools, line 86
 
-    String DeviceInfoURI = "http://www.opensmarthouse.org/dmxConnect/api/zwavedatabase/device/list.php?filter=manufacturer:0x${manufacturer}%20${deviceType}:${deviceID}" // library marker zwaveTools.openSmarthouseTools, line 89
+    String DeviceInfoURI = "http://www.opensmarthouse.org/dmxConnect/api/zwavedatabase/device/list.php?filter=manufacturer:0x${manufacturer}%20${deviceType}:${deviceID}" // library marker zwaveTools.openSmarthouseTools, line 88
 
-    Map thisDeviceData // library marker zwaveTools.openSmarthouseTools, line 91
+    Map thisDeviceData // library marker zwaveTools.openSmarthouseTools, line 90
 
-    httpGet([uri:DeviceInfoURI]) // library marker zwaveTools.openSmarthouseTools, line 93
-    {  // library marker zwaveTools.openSmarthouseTools, line 94
-		resp -> // library marker zwaveTools.openSmarthouseTools, line 95
-		Map maxRecord = resp.data.devices.max(			{ a, b ->  // library marker zwaveTools.openSmarthouseTools, line 96
-				List<Integer> a_version = a.version_max.split("\\.") // library marker zwaveTools.openSmarthouseTools, line 97
-				List<Integer> b_version = b.version_max.split("\\.") // library marker zwaveTools.openSmarthouseTools, line 98
+    httpGet([uri:DeviceInfoURI]) // library marker zwaveTools.openSmarthouseTools, line 92
+    {  // library marker zwaveTools.openSmarthouseTools, line 93
+		resp -> // library marker zwaveTools.openSmarthouseTools, line 94
+		Map maxRecord = resp.data.devices.max(			{ a, b ->  // library marker zwaveTools.openSmarthouseTools, line 95
+				List<Integer> a_version = a.version_max.split("\\.") // library marker zwaveTools.openSmarthouseTools, line 96
+				List<Integer> b_version = b.version_max.split("\\.") // library marker zwaveTools.openSmarthouseTools, line 97
 
-				Float a_value = a_version[0].toFloat() + (a_version[1].toFloat() / 1000) // library marker zwaveTools.openSmarthouseTools, line 100
-				Float b_value = b_version[0].toFloat() + (b_version[1].toFloat() / 1000) // library marker zwaveTools.openSmarthouseTools, line 101
+				Float a_value = a_version[0].toFloat() + (a_version[1].toFloat() / 1000) // library marker zwaveTools.openSmarthouseTools, line 99
+				Float b_value = b_version[0].toFloat() + (b_version[1].toFloat() / 1000) // library marker zwaveTools.openSmarthouseTools, line 100
 
-				(a_value <=> b_value) // library marker zwaveTools.openSmarthouseTools, line 103
-			}) // library marker zwaveTools.openSmarthouseTools, line 104
-		return maxRecord // library marker zwaveTools.openSmarthouseTools, line 105
-	} // library marker zwaveTools.openSmarthouseTools, line 106
-} // library marker zwaveTools.openSmarthouseTools, line 107
+				(a_value <=> b_value) // library marker zwaveTools.openSmarthouseTools, line 102
+			}) // library marker zwaveTools.openSmarthouseTools, line 103
+		return maxRecord // library marker zwaveTools.openSmarthouseTools, line 104
+	} // library marker zwaveTools.openSmarthouseTools, line 105
+} // library marker zwaveTools.openSmarthouseTools, line 106
 
-Map getRootClassData(endpointRecord) { // library marker zwaveTools.openSmarthouseTools, line 109
-	endpointRecord.find{ it.number == 0}.commandclass.collectEntries{thisClass -> // library marker zwaveTools.openSmarthouseTools, line 110
-					[(classMappings.get(thisClass.commandclass_name, 0) as Integer), (thisClass.version as Integer)] // library marker zwaveTools.openSmarthouseTools, line 111
-				} // library marker zwaveTools.openSmarthouseTools, line 112
-} // library marker zwaveTools.openSmarthouseTools, line 113
+Map getRootClassData(endpointRecord) { // library marker zwaveTools.openSmarthouseTools, line 108
+	endpointRecord.find{ it.number == 0}.commandclass.collectEntries{thisClass -> // library marker zwaveTools.openSmarthouseTools, line 109
+					[(classMappings.get(thisClass.commandclass_name, 0) as Integer), (thisClass.version as Integer)] // library marker zwaveTools.openSmarthouseTools, line 110
+				} // library marker zwaveTools.openSmarthouseTools, line 111
+} // library marker zwaveTools.openSmarthouseTools, line 112
 
-String getChildComponentDriver(List classes) // library marker zwaveTools.openSmarthouseTools, line 115
-{ // library marker zwaveTools.openSmarthouseTools, line 116
-	if (classes.contains(0x25) ){  // Binary Switch // library marker zwaveTools.openSmarthouseTools, line 117
-		if (classes.contains(0x32) ){ // Meter Supported // library marker zwaveTools.openSmarthouseTools, line 118
-			return "Generic Component Metering Switch" // library marker zwaveTools.openSmarthouseTools, line 119
-		} else { // library marker zwaveTools.openSmarthouseTools, line 120
-			return "Generic Component Switch" // library marker zwaveTools.openSmarthouseTools, line 121
-		} // library marker zwaveTools.openSmarthouseTools, line 122
-	} else  if (classes.contains(0x26)){ // MultiLevel Switch // library marker zwaveTools.openSmarthouseTools, line 123
-		if (classes.contains(0x32) ){ // Meter Supported // library marker zwaveTools.openSmarthouseTools, line 124
-			return "Generic Component Metering Dimmer" // library marker zwaveTools.openSmarthouseTools, line 125
-		} else { // library marker zwaveTools.openSmarthouseTools, line 126
-			return "Generic Component Dimmer" // library marker zwaveTools.openSmarthouseTools, line 127
-		}			 // library marker zwaveTools.openSmarthouseTools, line 128
-	} // library marker zwaveTools.openSmarthouseTools, line 129
-	return "Generic Component Dimmer" // library marker zwaveTools.openSmarthouseTools, line 130
-} // library marker zwaveTools.openSmarthouseTools, line 131
+String getChildComponentDriver(List classes) // library marker zwaveTools.openSmarthouseTools, line 114
+{ // library marker zwaveTools.openSmarthouseTools, line 115
+	if (classes.contains(0x25) ){  // Binary Switch // library marker zwaveTools.openSmarthouseTools, line 116
+		if (classes.contains(0x32) ){ // Meter Supported // library marker zwaveTools.openSmarthouseTools, line 117
+			return "Generic Component Metering Switch" // library marker zwaveTools.openSmarthouseTools, line 118
+		} else { // library marker zwaveTools.openSmarthouseTools, line 119
+			return "Generic Component Switch" // library marker zwaveTools.openSmarthouseTools, line 120
+		} // library marker zwaveTools.openSmarthouseTools, line 121
+	} else  if (classes.contains(0x26)){ // MultiLevel Switch // library marker zwaveTools.openSmarthouseTools, line 122
+		if (classes.contains(0x32) ){ // Meter Supported // library marker zwaveTools.openSmarthouseTools, line 123
+			return "Generic Component Metering Dimmer" // library marker zwaveTools.openSmarthouseTools, line 124
+		} else { // library marker zwaveTools.openSmarthouseTools, line 125
+			return "Generic Component Dimmer" // library marker zwaveTools.openSmarthouseTools, line 126
+		}			 // library marker zwaveTools.openSmarthouseTools, line 127
+	} // library marker zwaveTools.openSmarthouseTools, line 128
+	return "Generic Component Dimmer" // library marker zwaveTools.openSmarthouseTools, line 129
+} // library marker zwaveTools.openSmarthouseTools, line 130
 
-Map getEndpointClassData(endpointRecord) // library marker zwaveTools.openSmarthouseTools, line 133
-{ // library marker zwaveTools.openSmarthouseTools, line 134
-	Map endpointClassMap = [:] // library marker zwaveTools.openSmarthouseTools, line 135
+Map getEndpointClassData(endpointRecord) // library marker zwaveTools.openSmarthouseTools, line 132
+{ // library marker zwaveTools.openSmarthouseTools, line 133
+	Map endpointClassMap = [:] // library marker zwaveTools.openSmarthouseTools, line 134
 
-	endpointRecord.each{ it -> // library marker zwaveTools.openSmarthouseTools, line 137
-			List thisEndpointClasses =  it.commandclass.collect{thisClass -> classMappings.get(thisClass.commandclass_name, 0) as Integer } // library marker zwaveTools.openSmarthouseTools, line 138
+	endpointRecord.each{ it -> // library marker zwaveTools.openSmarthouseTools, line 136
+			List thisEndpointClasses =  it.commandclass.collect{thisClass -> classMappings.get(thisClass.commandclass_name, 0) as Integer } // library marker zwaveTools.openSmarthouseTools, line 137
 
-			if (it.number == 0) { // library marker zwaveTools.openSmarthouseTools, line 140
-				endpointClassMap.put((it.number as Integer), [classes:(thisEndpointClasses)]) // library marker zwaveTools.openSmarthouseTools, line 141
-				return // library marker zwaveTools.openSmarthouseTools, line 142
-			} else { // library marker zwaveTools.openSmarthouseTools, line 143
-				String childDriver = getChildComponentDriver(thisEndpointClasses) // library marker zwaveTools.openSmarthouseTools, line 144
-				endpointClassMap.put((it.number as Integer), [children:[[type:childDriver, namespace:"hubitat"]], classes:(thisEndpointClasses)]) // library marker zwaveTools.openSmarthouseTools, line 145
-			} // library marker zwaveTools.openSmarthouseTools, line 146
-		} // library marker zwaveTools.openSmarthouseTools, line 147
-    return endpointClassMap // library marker zwaveTools.openSmarthouseTools, line 148
-} // library marker zwaveTools.openSmarthouseTools, line 149
+				String childDriver = getChildComponentDriver(thisEndpointClasses) // library marker zwaveTools.openSmarthouseTools, line 139
+				endpointClassMap.put((it.number as Integer), [children:[[type:childDriver, namespace:"hubitat", childName:"RenameMe - device for endpoint: ${it.number}"]], classes:(thisEndpointClasses)]) // library marker zwaveTools.openSmarthouseTools, line 140
 
-Map createInputControls(data) // library marker zwaveTools.openSmarthouseTools, line 151
-{ // library marker zwaveTools.openSmarthouseTools, line 152
-	if (!data) return null // library marker zwaveTools.openSmarthouseTools, line 153
+			/* // library marker zwaveTools.openSmarthouseTools, line 142
+			if (it.number == 0) { // library marker zwaveTools.openSmarthouseTools, line 143
+				endpointClassMap.put((it.number as Integer), [classes:(thisEndpointClasses)]) // library marker zwaveTools.openSmarthouseTools, line 144
+				return // library marker zwaveTools.openSmarthouseTools, line 145
+			} else { // library marker zwaveTools.openSmarthouseTools, line 146
+				String childDriver = getChildComponentDriver(thisEndpointClasses) // library marker zwaveTools.openSmarthouseTools, line 147
+				endpointClassMap.put((it.number as Integer), [children:[[type:childDriver, namespace:"hubitat", childName:"RenameMe - device for endpoint: ${it.number}"]], classes:(thisEndpointClasses)]) // library marker zwaveTools.openSmarthouseTools, line 148
+			} // library marker zwaveTools.openSmarthouseTools, line 149
+			*/ // library marker zwaveTools.openSmarthouseTools, line 150
+		} // library marker zwaveTools.openSmarthouseTools, line 151
+    return endpointClassMap // library marker zwaveTools.openSmarthouseTools, line 152
+} // library marker zwaveTools.openSmarthouseTools, line 153
 
-	Map inputControls = [:]	 // library marker zwaveTools.openSmarthouseTools, line 155
-	data?.each // library marker zwaveTools.openSmarthouseTools, line 156
-	{ // library marker zwaveTools.openSmarthouseTools, line 157
-		if (it.read_only as Integer) { // library marker zwaveTools.openSmarthouseTools, line 158
-				log.info "Device ${device.displayName}: Parameter ${it.param_id}-${it.label} is read-only. No input control created." // library marker zwaveTools.openSmarthouseTools, line 159
-				return // library marker zwaveTools.openSmarthouseTools, line 160
-			} // library marker zwaveTools.openSmarthouseTools, line 161
+Map createInputControls(data) // library marker zwaveTools.openSmarthouseTools, line 155
+{ // library marker zwaveTools.openSmarthouseTools, line 156
+	if (!data) return null // library marker zwaveTools.openSmarthouseTools, line 157
 
-		if (it.bitmask.toInteger()) // library marker zwaveTools.openSmarthouseTools, line 163
-		{ // library marker zwaveTools.openSmarthouseTools, line 164
-			if (!(inputControls?.get(it.param_id))) // library marker zwaveTools.openSmarthouseTools, line 165
-			{ // library marker zwaveTools.openSmarthouseTools, line 166
-				log.warn "Device ${device.displayName}: Parameter ${it.param_id} is a bitmap field. This is poorly supported. Treating as an integer - rely on your user manual for proper values!" // library marker zwaveTools.openSmarthouseTools, line 167
-				String param_name_string = "${it.param_id}" // library marker zwaveTools.openSmarthouseTools, line 168
-				String title_string = "(${it.param_id}) ${it.label} - bitmap" // library marker zwaveTools.openSmarthouseTools, line 169
-				Map newInput = [name:param_name_string , type:"number", title: title_string, size:it.size] // library marker zwaveTools.openSmarthouseTools, line 170
-				if ((it.description.size() != 0) && (it.description != it.label)) newInput.description = it.description // library marker zwaveTools.openSmarthouseTools, line 171
+	Map inputControls = [:]	 // library marker zwaveTools.openSmarthouseTools, line 159
+	data?.each // library marker zwaveTools.openSmarthouseTools, line 160
+	{ // library marker zwaveTools.openSmarthouseTools, line 161
+		if (it.read_only as Integer) { // library marker zwaveTools.openSmarthouseTools, line 162
+				log.info "Device ${device.displayName}: Parameter ${it.param_id}-${it.label} is read-only. No input control created." // library marker zwaveTools.openSmarthouseTools, line 163
+				return // library marker zwaveTools.openSmarthouseTools, line 164
+			} // library marker zwaveTools.openSmarthouseTools, line 165
 
-				inputControls.put(it.param_id, newInput) // library marker zwaveTools.openSmarthouseTools, line 173
-			} // library marker zwaveTools.openSmarthouseTools, line 174
-		} else { // library marker zwaveTools.openSmarthouseTools, line 175
-			String param_name_string = "${it.param_id}" // library marker zwaveTools.openSmarthouseTools, line 176
-			String title_string = "(${it.param_id}) ${it.label}" // library marker zwaveTools.openSmarthouseTools, line 177
+		if (it.bitmask.toInteger()) // library marker zwaveTools.openSmarthouseTools, line 167
+		{ // library marker zwaveTools.openSmarthouseTools, line 168
+			if (!(inputControls?.get(it.param_id))) // library marker zwaveTools.openSmarthouseTools, line 169
+			{ // library marker zwaveTools.openSmarthouseTools, line 170
+				log.warn "Device ${device.displayName}: Parameter ${it.param_id} is a bitmap field. This is poorly supported. Treating as an integer - rely on your user manual for proper values!" // library marker zwaveTools.openSmarthouseTools, line 171
+				String param_name_string = "${it.param_id}" // library marker zwaveTools.openSmarthouseTools, line 172
+				String title_string = "(${it.param_id}) ${it.label} - bitmap" // library marker zwaveTools.openSmarthouseTools, line 173
+				Map newInput = [name:param_name_string , type:"number", title: title_string, size:it.size] // library marker zwaveTools.openSmarthouseTools, line 174
+				if ((it.description.size() != 0) && (it.description != it.label)) newInput.description = it.description // library marker zwaveTools.openSmarthouseTools, line 175
 
-			Map newInput = [name: param_name_string, title: title_string, size:it.size] // library marker zwaveTools.openSmarthouseTools, line 179
-			if ((it.description.size() != 0) && (it.description != it.label)) newInput.description = it.description // library marker zwaveTools.openSmarthouseTools, line 180
+				inputControls.put(it.param_id, newInput) // library marker zwaveTools.openSmarthouseTools, line 177
+			} // library marker zwaveTools.openSmarthouseTools, line 178
+		} else { // library marker zwaveTools.openSmarthouseTools, line 179
+			String param_name_string = "${it.param_id}" // library marker zwaveTools.openSmarthouseTools, line 180
+			String title_string = "(${it.param_id}) ${it.label}" // library marker zwaveTools.openSmarthouseTools, line 181
 
-			def deviceOptions = [:] // library marker zwaveTools.openSmarthouseTools, line 182
-			it.options.each { deviceOptions.put(it.value, it.label) } // library marker zwaveTools.openSmarthouseTools, line 183
+			Map newInput = [name: param_name_string, title: title_string, size:it.size] // library marker zwaveTools.openSmarthouseTools, line 183
+			if ((it.description.size() != 0) && (it.description != it.label)) newInput.description = it.description // library marker zwaveTools.openSmarthouseTools, line 184
 
-			// Set input type. Should be one of: bool, date, decimal, email, enum, number, password, time, text. See: https://docs.hubitat.com/index.php?title=Device_Preferences // library marker zwaveTools.openSmarthouseTools, line 185
+			def deviceOptions = [:] // library marker zwaveTools.openSmarthouseTools, line 186
+			it.options.each { deviceOptions.put(it.value, it.label) } // library marker zwaveTools.openSmarthouseTools, line 187
 
-			// use enum but only if it covers all of the choices! // library marker zwaveTools.openSmarthouseTools, line 187
-			Integer numberOfValues = (it.maximum - it.minimum) +1 // library marker zwaveTools.openSmarthouseTools, line 188
-			if (deviceOptions && (deviceOptions.size() == numberOfValues) ) // library marker zwaveTools.openSmarthouseTools, line 189
-			{ // library marker zwaveTools.openSmarthouseTools, line 190
-				newInput.type = "enum" // library marker zwaveTools.openSmarthouseTools, line 191
-				newInput.options = deviceOptions // library marker zwaveTools.openSmarthouseTools, line 192
-			} else { // library marker zwaveTools.openSmarthouseTools, line 193
-				newInput.type = "number" // library marker zwaveTools.openSmarthouseTools, line 194
-				newInput.range = "${it.minimum}..${it.maximum}" // library marker zwaveTools.openSmarthouseTools, line 195
-			} // library marker zwaveTools.openSmarthouseTools, line 196
-			inputControls[it.param_id] = newInput // library marker zwaveTools.openSmarthouseTools, line 197
-		} // library marker zwaveTools.openSmarthouseTools, line 198
-	} // library marker zwaveTools.openSmarthouseTools, line 199
-	return inputControls // library marker zwaveTools.openSmarthouseTools, line 200
-} // library marker zwaveTools.openSmarthouseTools, line 201
+			// Set input type. Should be one of: bool, date, decimal, email, enum, number, password, time, text. See: https://docs.hubitat.com/index.php?title=Device_Preferences // library marker zwaveTools.openSmarthouseTools, line 189
 
-@Field static Map classMappings = [ // library marker zwaveTools.openSmarthouseTools, line 203
-	COMMAND_CLASS_ALARM:0x71, // library marker zwaveTools.openSmarthouseTools, line 204
-	COMMAND_CLASS_SENSOR_ALARM :0x9C, // library marker zwaveTools.openSmarthouseTools, line 205
-	COMMAND_CLASS_SILENCE_ALARM:0x9D, // library marker zwaveTools.openSmarthouseTools, line 206
-	COMMAND_CLASS_SWITCH_ALL:0x27, // library marker zwaveTools.openSmarthouseTools, line 207
-	COMMAND_CLASS_ANTITHEFT:0x5D, // library marker zwaveTools.openSmarthouseTools, line 208
-	COMMAND_CLASS_ANTITHEFT_UNLOCK:0x7E, // library marker zwaveTools.openSmarthouseTools, line 209
-	COMMAND_CLASS_APPLICATION_CAPABILITY:0x57, // library marker zwaveTools.openSmarthouseTools, line 210
-	COMMAND_CLASS_APPLICATION_STATUS:0x22, // library marker zwaveTools.openSmarthouseTools, line 211
-	COMMAND_CLASS_ASSOCIATION:0x85, // library marker zwaveTools.openSmarthouseTools, line 212
-	COMMAND_CLASS_ASSOCIATION_COMMAND_CONFIGURATION:0x9B, // library marker zwaveTools.openSmarthouseTools, line 213
-	COMMAND_CLASS_ASSOCIATION_GRP_INFO:0x59, // library marker zwaveTools.openSmarthouseTools, line 214
-	COMMAND_CLASS_AUTHENTICATION:0xA1, // library marker zwaveTools.openSmarthouseTools, line 215
-	COMMAND_CLASS_AUTHENTICATION_MEDIA_WRITE:0xA2, // library marker zwaveTools.openSmarthouseTools, line 216
-	COMMAND_CLASS_BARRIER_OPERATOR:0x66, // library marker zwaveTools.openSmarthouseTools, line 217
-	COMMAND_CLASS_BASIC:0x20, // library marker zwaveTools.openSmarthouseTools, line 218
-	COMMAND_CLASS_BASIC_TARIFF_INFO:0x36, // library marker zwaveTools.openSmarthouseTools, line 219
-	COMMAND_CLASS_BASIC_WINDOW_COVERING:0x50, // library marker zwaveTools.openSmarthouseTools, line 220
-	COMMAND_CLASS_BATTERY:0x80, // library marker zwaveTools.openSmarthouseTools, line 221
-	COMMAND_CLASS_SENSOR_BINARY:0x30, // library marker zwaveTools.openSmarthouseTools, line 222
-	COMMAND_CLASS_SWITCH_BINARY:0x25, // library marker zwaveTools.openSmarthouseTools, line 223
-	COMMAND_CLASS_SWITCH_TOGGLE_BINARY:0x28, // library marker zwaveTools.openSmarthouseTools, line 224
-	COMMAND_CLASS_CLIMATE_CONTROL_SCHEDULE:0x46, // library marker zwaveTools.openSmarthouseTools, line 225
-	COMMAND_CLASS_CENTRAL_SCENE:0x5B, // library marker zwaveTools.openSmarthouseTools, line 226
-	COMMAND_CLASS_CLOCK:0x81, // library marker zwaveTools.openSmarthouseTools, line 227
-	COMMAND_CLASS_SWITCH_COLOR:0x33, // library marker zwaveTools.openSmarthouseTools, line 228
-	COMMAND_CLASS_CONFIGURATION:0x70, // library marker zwaveTools.openSmarthouseTools, line 229
-	COMMAND_CLASS_CONTROLLER_REPLICATION:0x21, // library marker zwaveTools.openSmarthouseTools, line 230
-	COMMAND_CLASS_CRC_16_ENCAP:0x56, // library marker zwaveTools.openSmarthouseTools, line 231
-	COMMAND_CLASS_DCP_CONFIG:0x3A, // library marker zwaveTools.openSmarthouseTools, line 232
-	COMMAND_CLASS_DCP_MONITOR:0x3B, // library marker zwaveTools.openSmarthouseTools, line 233
-	COMMAND_CLASS_DEVICE_RESET_LOCALLY:0x5A, // library marker zwaveTools.openSmarthouseTools, line 234
-	COMMAND_CLASS_DOOR_LOCK:0x62, // library marker zwaveTools.openSmarthouseTools, line 235
-	COMMAND_CLASS_DOOR_LOCK_LOGGING:0x4C, // library marker zwaveTools.openSmarthouseTools, line 236
-	COMMAND_CLASS_ENERGY_PRODUCTION:0x90, // library marker zwaveTools.openSmarthouseTools, line 237
-	COMMAND_CLASS_ENTRY_CONTROL :0x6F, // library marker zwaveTools.openSmarthouseTools, line 238
-	COMMAND_CLASS_FIRMWARE_UPDATE_MD:0x7A, // library marker zwaveTools.openSmarthouseTools, line 239
-	COMMAND_CLASS_GENERIC_SCHEDULE:0xA3, // library marker zwaveTools.openSmarthouseTools, line 240
-	COMMAND_CLASS_GEOGRAPHIC_LOCATION:0x8C, // library marker zwaveTools.openSmarthouseTools, line 241
-	COMMAND_CLASS_GROUPING_NAME:0x7B, // library marker zwaveTools.openSmarthouseTools, line 242
-	COMMAND_CLASS_HAIL:0x82, // library marker zwaveTools.openSmarthouseTools, line 243
-	COMMAND_CLASS_HRV_STATUS:0x37, // library marker zwaveTools.openSmarthouseTools, line 244
-	COMMAND_CLASS_HRV_CONTROL:0x39, // library marker zwaveTools.openSmarthouseTools, line 245
-	COMMAND_CLASS_HUMIDITY_CONTROL_MODE:0x6D, // library marker zwaveTools.openSmarthouseTools, line 246
-	COMMAND_CLASS_HUMIDITY_CONTROL_OPERATING_STATE:0x6E, // library marker zwaveTools.openSmarthouseTools, line 247
-	COMMAND_CLASS_HUMIDITY_CONTROL_SETPOINT:0x64, // library marker zwaveTools.openSmarthouseTools, line 248
-	COMMAND_CLASS_INCLUSION_CONTROLLER:0x74, // library marker zwaveTools.openSmarthouseTools, line 249
-	COMMAND_CLASS_INDICATOR:0x87, // library marker zwaveTools.openSmarthouseTools, line 250
-	COMMAND_CLASS_IP_ASSOCIATION:0x5C, // library marker zwaveTools.openSmarthouseTools, line 251
-	COMMAND_CLASS_IP_CONFIGURATION:0x9A, // library marker zwaveTools.openSmarthouseTools, line 252
-	COMMAND_CLASS_IR_REPEATER:0xA0, // library marker zwaveTools.openSmarthouseTools, line 253
-	COMMAND_CLASS_IRRIGATION:0x6B, // library marker zwaveTools.openSmarthouseTools, line 254
-	COMMAND_CLASS_LANGUAGE:0x89, // library marker zwaveTools.openSmarthouseTools, line 255
-	COMMAND_CLASS_LOCK:0x76, // library marker zwaveTools.openSmarthouseTools, line 256
-	COMMAND_CLASS_MAILBOX:0x69, // library marker zwaveTools.openSmarthouseTools, line 257
-	COMMAND_CLASS_MANUFACTURER_PROPRIETARY:0x91, // library marker zwaveTools.openSmarthouseTools, line 258
-	COMMAND_CLASS_MANUFACTURER_SPECIFIC:0x72, // library marker zwaveTools.openSmarthouseTools, line 259
-	COMMAND_CLASS_MARK:0xEF, // library marker zwaveTools.openSmarthouseTools, line 260
-	COMMAND_CLASS_METER:0x32, // library marker zwaveTools.openSmarthouseTools, line 261
-	COMMAND_CLASS_METER_TBL_CONFIG:0x3C, // library marker zwaveTools.openSmarthouseTools, line 262
-	COMMAND_CLASS_METER_TBL_MONITOR:0x3D, // library marker zwaveTools.openSmarthouseTools, line 263
-	COMMAND_CLASS_METER_TBL_PUSH:0x3E, // library marker zwaveTools.openSmarthouseTools, line 264
-	COMMAND_CLASS_MTP_WINDOW_COVERING:0x51, // library marker zwaveTools.openSmarthouseTools, line 265
-	COMMAND_CLASS_MULTI_CHANNEL:0x60, // library marker zwaveTools.openSmarthouseTools, line 266
-	COMMAND_CLASS_MULTI_CHANNEL_ASSOCIATION:0x8E, // library marker zwaveTools.openSmarthouseTools, line 267
-	COMMAND_CLASS_MULTI_CMD:0x8F, // library marker zwaveTools.openSmarthouseTools, line 268
-	COMMAND_CLASS_SENSOR_MULTILEVEL:0x31, // library marker zwaveTools.openSmarthouseTools, line 269
-	COMMAND_CLASS_SWITCH_MULTILEVEL:0x26, // library marker zwaveTools.openSmarthouseTools, line 270
-	COMMAND_CLASS_SWITCH_TOGGLE_MULTILEVEL:0x29, // library marker zwaveTools.openSmarthouseTools, line 271
-	COMMAND_CLASS_NETWORK_MANAGEMENT_BASIC:0x4D, // library marker zwaveTools.openSmarthouseTools, line 272
-	COMMAND_CLASS_NETWORK_MANAGEMENT_INCLUSION:0x34, // library marker zwaveTools.openSmarthouseTools, line 273
-	NETWORK_MANAGEMENT_INSTALLATION_MAINTENANCE:0x67, // library marker zwaveTools.openSmarthouseTools, line 274
-	COMMAND_CLASS_NETWORK_MANAGEMENT_PRIMARY:0x54, // library marker zwaveTools.openSmarthouseTools, line 275
-	COMMAND_CLASS_NETWORK_MANAGEMENT_PROXY:0x52, // library marker zwaveTools.openSmarthouseTools, line 276
-	COMMAND_CLASS_NO_OPERATION:0x00, // library marker zwaveTools.openSmarthouseTools, line 277
-	COMMAND_CLASS_NODE_NAMING:0x77, // library marker zwaveTools.openSmarthouseTools, line 278
-	COMMAND_CLASS_NODE_PROVISIONING:0x78, // library marker zwaveTools.openSmarthouseTools, line 279
-	COMMAND_CLASS_NOTIFICATION:0x71, // library marker zwaveTools.openSmarthouseTools, line 280
-	COMMAND_CLASS_POWERLEVEL:0x73, // library marker zwaveTools.openSmarthouseTools, line 281
-	COMMAND_CLASS_PREPAYMENT:0x3F, // library marker zwaveTools.openSmarthouseTools, line 282
-	COMMAND_CLASS_PREPAYMENT_ENCAPSULATION:0x41, // library marker zwaveTools.openSmarthouseTools, line 283
-	COMMAND_CLASS_PROPRIETARY:0x88, // library marker zwaveTools.openSmarthouseTools, line 284
-	COMMAND_CLASS_PROTECTION:0x75, // library marker zwaveTools.openSmarthouseTools, line 285
-	COMMAND_CLASS_METER_PULSE:0x35, // library marker zwaveTools.openSmarthouseTools, line 286
-	COMMAND_CLASS_RATE_TBL_CONFIG:0x48, // library marker zwaveTools.openSmarthouseTools, line 287
-	COMMAND_CLASS_RATE_TBL_MONITOR:0x49, // library marker zwaveTools.openSmarthouseTools, line 288
-	COMMAND_CLASS_REMOTE_ASSOCIATION_ACTIVATE:0x7C, // library marker zwaveTools.openSmarthouseTools, line 289
-	COMMAND_CLASS_REMOTE_ASSOCIATION:0x7D, // library marker zwaveTools.openSmarthouseTools, line 290
-	COMMAND_CLASS_SCENE_ACTIVATION:0x2B, // library marker zwaveTools.openSmarthouseTools, line 291
-	COMMAND_CLASS_SCENE_ACTUATOR_CONF:0x2C, // library marker zwaveTools.openSmarthouseTools, line 292
-	COMMAND_CLASS_SCENE_CONTROLLER_CONF:0x2D, // library marker zwaveTools.openSmarthouseTools, line 293
-	COMMAND_CLASS_SCHEDULE:0x53, // library marker zwaveTools.openSmarthouseTools, line 294
-	COMMAND_CLASS_SCHEDULE_ENTRY_LOCK:0x4E, // library marker zwaveTools.openSmarthouseTools, line 295
-	COMMAND_CLASS_SCREEN_ATTRIBUTES:0x93, // library marker zwaveTools.openSmarthouseTools, line 296
-	COMMAND_CLASS_SCREEN_MD:0x92, // library marker zwaveTools.openSmarthouseTools, line 297
-	COMMAND_CLASS_SECURITY:0x98, // library marker zwaveTools.openSmarthouseTools, line 298
-	COMMAND_CLASS_SECURITY_2:0x9F, // library marker zwaveTools.openSmarthouseTools, line 299
-	COMMAND_CLASS_SECURITY_SCHEME0_MARK :0xF100, // library marker zwaveTools.openSmarthouseTools, line 300
-	COMMAND_CLASS_SENSOR_CONFIGURATION:0x9E, // library marker zwaveTools.openSmarthouseTools, line 301
-	COMMAND_CLASS_SIMPLE_AV_CONTROL:0x94, // library marker zwaveTools.openSmarthouseTools, line 302
-	COMMAND_CLASS_SOUND_SWITCH:0x79, // library marker zwaveTools.openSmarthouseTools, line 303
-	COMMAND_CLASS_SUPERVISION:0x6C, // library marker zwaveTools.openSmarthouseTools, line 304
-	COMMAND_CLASS_TARIFF_CONFIG:0x4A, // library marker zwaveTools.openSmarthouseTools, line 305
-	COMMAND_CLASS_TARIFF_TBL_MONITOR:0x4B, // library marker zwaveTools.openSmarthouseTools, line 306
-	COMMAND_CLASS_THERMOSTAT_FAN_MODE:0x44, // library marker zwaveTools.openSmarthouseTools, line 307
-	COMMAND_CLASS_THERMOSTAT_FAN_STATE:0x45, // library marker zwaveTools.openSmarthouseTools, line 308
-	COMMAND_CLASS_THERMOSTAT_MODE:0x40, // library marker zwaveTools.openSmarthouseTools, line 309
-	COMMAND_CLASS_THERMOSTAT_OPERATING_STATE:0x42, // library marker zwaveTools.openSmarthouseTools, line 310
-	COMMAND_CLASS_THERMOSTAT_SETBACK:0x47, // library marker zwaveTools.openSmarthouseTools, line 311
-	COMMAND_CLASS_THERMOSTAT_SETPOINT:0x43, // library marker zwaveTools.openSmarthouseTools, line 312
-	COMMAND_CLASS_TIME:0x8A, // library marker zwaveTools.openSmarthouseTools, line 313
-	COMMAND_CLASS_TIME_PARAMETERS:0x8B, // library marker zwaveTools.openSmarthouseTools, line 314
-	COMMAND_CLASS_TRANSPORT_SERVICE:0x55, // library marker zwaveTools.openSmarthouseTools, line 315
-	COMMAND_CLASS_USER_CODE:0x63, // library marker zwaveTools.openSmarthouseTools, line 316
-	COMMAND_CLASS_VERSION:0x86, // library marker zwaveTools.openSmarthouseTools, line 317
-	COMMAND_CLASS_WAKE_UP:0x84, // library marker zwaveTools.openSmarthouseTools, line 318
-	COMMAND_CLASS_WINDOW_COVERING:0x6A, // library marker zwaveTools.openSmarthouseTools, line 319
-	COMMAND_CLASS_ZIP:0x23, // library marker zwaveTools.openSmarthouseTools, line 320
-	COMMAND_CLASS_ZIP_6LOWPAN:0x4F, // library marker zwaveTools.openSmarthouseTools, line 321
-	COMMAND_CLASS_ZIP_GATEWAY:0x5F, // library marker zwaveTools.openSmarthouseTools, line 322
-	COMMAND_CLASS_ZIP_NAMING:0x68, // library marker zwaveTools.openSmarthouseTools, line 323
-	COMMAND_CLASS_ZIP_ND:0x58, // library marker zwaveTools.openSmarthouseTools, line 324
-	COMMAND_CLASS_ZIP_PORTAL:0x61, // library marker zwaveTools.openSmarthouseTools, line 325
-	COMMAND_CLASS_ZWAVEPLUS_INFO:0x5E, // library marker zwaveTools.openSmarthouseTools, line 326
-] // library marker zwaveTools.openSmarthouseTools, line 327
+			// use enum but only if it covers all of the choices! // library marker zwaveTools.openSmarthouseTools, line 191
+			Integer numberOfValues = (it.maximum - it.minimum) +1 // library marker zwaveTools.openSmarthouseTools, line 192
+			if (deviceOptions && (deviceOptions.size() == numberOfValues) ) // library marker zwaveTools.openSmarthouseTools, line 193
+			{ // library marker zwaveTools.openSmarthouseTools, line 194
+				newInput.type = "enum" // library marker zwaveTools.openSmarthouseTools, line 195
+				newInput.options = deviceOptions // library marker zwaveTools.openSmarthouseTools, line 196
+			} else { // library marker zwaveTools.openSmarthouseTools, line 197
+				newInput.type = "number" // library marker zwaveTools.openSmarthouseTools, line 198
+				newInput.range = "${it.minimum}..${it.maximum}" // library marker zwaveTools.openSmarthouseTools, line 199
+			} // library marker zwaveTools.openSmarthouseTools, line 200
+			inputControls[it.param_id] = newInput // library marker zwaveTools.openSmarthouseTools, line 201
+		} // library marker zwaveTools.openSmarthouseTools, line 202
+	} // library marker zwaveTools.openSmarthouseTools, line 203
+	return inputControls // library marker zwaveTools.openSmarthouseTools, line 204
+} // library marker zwaveTools.openSmarthouseTools, line 205
+
+@Field static Map classMappings = [ // library marker zwaveTools.openSmarthouseTools, line 207
+	COMMAND_CLASS_ALARM:0x71, // library marker zwaveTools.openSmarthouseTools, line 208
+	COMMAND_CLASS_SENSOR_ALARM :0x9C, // library marker zwaveTools.openSmarthouseTools, line 209
+	COMMAND_CLASS_SILENCE_ALARM:0x9D, // library marker zwaveTools.openSmarthouseTools, line 210
+	COMMAND_CLASS_SWITCH_ALL:0x27, // library marker zwaveTools.openSmarthouseTools, line 211
+	COMMAND_CLASS_ANTITHEFT:0x5D, // library marker zwaveTools.openSmarthouseTools, line 212
+	COMMAND_CLASS_ANTITHEFT_UNLOCK:0x7E, // library marker zwaveTools.openSmarthouseTools, line 213
+	COMMAND_CLASS_APPLICATION_CAPABILITY:0x57, // library marker zwaveTools.openSmarthouseTools, line 214
+	COMMAND_CLASS_APPLICATION_STATUS:0x22, // library marker zwaveTools.openSmarthouseTools, line 215
+	COMMAND_CLASS_ASSOCIATION:0x85, // library marker zwaveTools.openSmarthouseTools, line 216
+	COMMAND_CLASS_ASSOCIATION_COMMAND_CONFIGURATION:0x9B, // library marker zwaveTools.openSmarthouseTools, line 217
+	COMMAND_CLASS_ASSOCIATION_GRP_INFO:0x59, // library marker zwaveTools.openSmarthouseTools, line 218
+	COMMAND_CLASS_AUTHENTICATION:0xA1, // library marker zwaveTools.openSmarthouseTools, line 219
+	COMMAND_CLASS_AUTHENTICATION_MEDIA_WRITE:0xA2, // library marker zwaveTools.openSmarthouseTools, line 220
+	COMMAND_CLASS_BARRIER_OPERATOR:0x66, // library marker zwaveTools.openSmarthouseTools, line 221
+	COMMAND_CLASS_BASIC:0x20, // library marker zwaveTools.openSmarthouseTools, line 222
+	COMMAND_CLASS_BASIC_TARIFF_INFO:0x36, // library marker zwaveTools.openSmarthouseTools, line 223
+	COMMAND_CLASS_BASIC_WINDOW_COVERING:0x50, // library marker zwaveTools.openSmarthouseTools, line 224
+	COMMAND_CLASS_BATTERY:0x80, // library marker zwaveTools.openSmarthouseTools, line 225
+	COMMAND_CLASS_SENSOR_BINARY:0x30, // library marker zwaveTools.openSmarthouseTools, line 226
+	COMMAND_CLASS_SWITCH_BINARY:0x25, // library marker zwaveTools.openSmarthouseTools, line 227
+	COMMAND_CLASS_SWITCH_TOGGLE_BINARY:0x28, // library marker zwaveTools.openSmarthouseTools, line 228
+	COMMAND_CLASS_CLIMATE_CONTROL_SCHEDULE:0x46, // library marker zwaveTools.openSmarthouseTools, line 229
+	COMMAND_CLASS_CENTRAL_SCENE:0x5B, // library marker zwaveTools.openSmarthouseTools, line 230
+	COMMAND_CLASS_CLOCK:0x81, // library marker zwaveTools.openSmarthouseTools, line 231
+	COMMAND_CLASS_SWITCH_COLOR:0x33, // library marker zwaveTools.openSmarthouseTools, line 232
+	COMMAND_CLASS_CONFIGURATION:0x70, // library marker zwaveTools.openSmarthouseTools, line 233
+	COMMAND_CLASS_CONTROLLER_REPLICATION:0x21, // library marker zwaveTools.openSmarthouseTools, line 234
+	COMMAND_CLASS_CRC_16_ENCAP:0x56, // library marker zwaveTools.openSmarthouseTools, line 235
+	COMMAND_CLASS_DCP_CONFIG:0x3A, // library marker zwaveTools.openSmarthouseTools, line 236
+	COMMAND_CLASS_DCP_MONITOR:0x3B, // library marker zwaveTools.openSmarthouseTools, line 237
+	COMMAND_CLASS_DEVICE_RESET_LOCALLY:0x5A, // library marker zwaveTools.openSmarthouseTools, line 238
+	COMMAND_CLASS_DOOR_LOCK:0x62, // library marker zwaveTools.openSmarthouseTools, line 239
+	COMMAND_CLASS_DOOR_LOCK_LOGGING:0x4C, // library marker zwaveTools.openSmarthouseTools, line 240
+	COMMAND_CLASS_ENERGY_PRODUCTION:0x90, // library marker zwaveTools.openSmarthouseTools, line 241
+	COMMAND_CLASS_ENTRY_CONTROL :0x6F, // library marker zwaveTools.openSmarthouseTools, line 242
+	COMMAND_CLASS_FIRMWARE_UPDATE_MD:0x7A, // library marker zwaveTools.openSmarthouseTools, line 243
+	COMMAND_CLASS_GENERIC_SCHEDULE:0xA3, // library marker zwaveTools.openSmarthouseTools, line 244
+	COMMAND_CLASS_GEOGRAPHIC_LOCATION:0x8C, // library marker zwaveTools.openSmarthouseTools, line 245
+	COMMAND_CLASS_GROUPING_NAME:0x7B, // library marker zwaveTools.openSmarthouseTools, line 246
+	COMMAND_CLASS_HAIL:0x82, // library marker zwaveTools.openSmarthouseTools, line 247
+	COMMAND_CLASS_HRV_STATUS:0x37, // library marker zwaveTools.openSmarthouseTools, line 248
+	COMMAND_CLASS_HRV_CONTROL:0x39, // library marker zwaveTools.openSmarthouseTools, line 249
+	COMMAND_CLASS_HUMIDITY_CONTROL_MODE:0x6D, // library marker zwaveTools.openSmarthouseTools, line 250
+	COMMAND_CLASS_HUMIDITY_CONTROL_OPERATING_STATE:0x6E, // library marker zwaveTools.openSmarthouseTools, line 251
+	COMMAND_CLASS_HUMIDITY_CONTROL_SETPOINT:0x64, // library marker zwaveTools.openSmarthouseTools, line 252
+	COMMAND_CLASS_INCLUSION_CONTROLLER:0x74, // library marker zwaveTools.openSmarthouseTools, line 253
+	COMMAND_CLASS_INDICATOR:0x87, // library marker zwaveTools.openSmarthouseTools, line 254
+	COMMAND_CLASS_IP_ASSOCIATION:0x5C, // library marker zwaveTools.openSmarthouseTools, line 255
+	COMMAND_CLASS_IP_CONFIGURATION:0x9A, // library marker zwaveTools.openSmarthouseTools, line 256
+	COMMAND_CLASS_IR_REPEATER:0xA0, // library marker zwaveTools.openSmarthouseTools, line 257
+	COMMAND_CLASS_IRRIGATION:0x6B, // library marker zwaveTools.openSmarthouseTools, line 258
+	COMMAND_CLASS_LANGUAGE:0x89, // library marker zwaveTools.openSmarthouseTools, line 259
+	COMMAND_CLASS_LOCK:0x76, // library marker zwaveTools.openSmarthouseTools, line 260
+	COMMAND_CLASS_MAILBOX:0x69, // library marker zwaveTools.openSmarthouseTools, line 261
+	COMMAND_CLASS_MANUFACTURER_PROPRIETARY:0x91, // library marker zwaveTools.openSmarthouseTools, line 262
+	COMMAND_CLASS_MANUFACTURER_SPECIFIC:0x72, // library marker zwaveTools.openSmarthouseTools, line 263
+	COMMAND_CLASS_MARK:0xEF, // library marker zwaveTools.openSmarthouseTools, line 264
+	COMMAND_CLASS_METER:0x32, // library marker zwaveTools.openSmarthouseTools, line 265
+	COMMAND_CLASS_METER_TBL_CONFIG:0x3C, // library marker zwaveTools.openSmarthouseTools, line 266
+	COMMAND_CLASS_METER_TBL_MONITOR:0x3D, // library marker zwaveTools.openSmarthouseTools, line 267
+	COMMAND_CLASS_METER_TBL_PUSH:0x3E, // library marker zwaveTools.openSmarthouseTools, line 268
+	COMMAND_CLASS_MTP_WINDOW_COVERING:0x51, // library marker zwaveTools.openSmarthouseTools, line 269
+	COMMAND_CLASS_MULTI_CHANNEL:0x60, // library marker zwaveTools.openSmarthouseTools, line 270
+	COMMAND_CLASS_MULTI_CHANNEL_ASSOCIATION:0x8E, // library marker zwaveTools.openSmarthouseTools, line 271
+	COMMAND_CLASS_MULTI_CMD:0x8F, // library marker zwaveTools.openSmarthouseTools, line 272
+	COMMAND_CLASS_SENSOR_MULTILEVEL:0x31, // library marker zwaveTools.openSmarthouseTools, line 273
+	COMMAND_CLASS_SWITCH_MULTILEVEL:0x26, // library marker zwaveTools.openSmarthouseTools, line 274
+	COMMAND_CLASS_SWITCH_TOGGLE_MULTILEVEL:0x29, // library marker zwaveTools.openSmarthouseTools, line 275
+	COMMAND_CLASS_NETWORK_MANAGEMENT_BASIC:0x4D, // library marker zwaveTools.openSmarthouseTools, line 276
+	COMMAND_CLASS_NETWORK_MANAGEMENT_INCLUSION:0x34, // library marker zwaveTools.openSmarthouseTools, line 277
+	NETWORK_MANAGEMENT_INSTALLATION_MAINTENANCE:0x67, // library marker zwaveTools.openSmarthouseTools, line 278
+	COMMAND_CLASS_NETWORK_MANAGEMENT_PRIMARY:0x54, // library marker zwaveTools.openSmarthouseTools, line 279
+	COMMAND_CLASS_NETWORK_MANAGEMENT_PROXY:0x52, // library marker zwaveTools.openSmarthouseTools, line 280
+	COMMAND_CLASS_NO_OPERATION:0x00, // library marker zwaveTools.openSmarthouseTools, line 281
+	COMMAND_CLASS_NODE_NAMING:0x77, // library marker zwaveTools.openSmarthouseTools, line 282
+	COMMAND_CLASS_NODE_PROVISIONING:0x78, // library marker zwaveTools.openSmarthouseTools, line 283
+	COMMAND_CLASS_NOTIFICATION:0x71, // library marker zwaveTools.openSmarthouseTools, line 284
+	COMMAND_CLASS_POWERLEVEL:0x73, // library marker zwaveTools.openSmarthouseTools, line 285
+	COMMAND_CLASS_PREPAYMENT:0x3F, // library marker zwaveTools.openSmarthouseTools, line 286
+	COMMAND_CLASS_PREPAYMENT_ENCAPSULATION:0x41, // library marker zwaveTools.openSmarthouseTools, line 287
+	COMMAND_CLASS_PROPRIETARY:0x88, // library marker zwaveTools.openSmarthouseTools, line 288
+	COMMAND_CLASS_PROTECTION:0x75, // library marker zwaveTools.openSmarthouseTools, line 289
+	COMMAND_CLASS_METER_PULSE:0x35, // library marker zwaveTools.openSmarthouseTools, line 290
+	COMMAND_CLASS_RATE_TBL_CONFIG:0x48, // library marker zwaveTools.openSmarthouseTools, line 291
+	COMMAND_CLASS_RATE_TBL_MONITOR:0x49, // library marker zwaveTools.openSmarthouseTools, line 292
+	COMMAND_CLASS_REMOTE_ASSOCIATION_ACTIVATE:0x7C, // library marker zwaveTools.openSmarthouseTools, line 293
+	COMMAND_CLASS_REMOTE_ASSOCIATION:0x7D, // library marker zwaveTools.openSmarthouseTools, line 294
+	COMMAND_CLASS_SCENE_ACTIVATION:0x2B, // library marker zwaveTools.openSmarthouseTools, line 295
+	COMMAND_CLASS_SCENE_ACTUATOR_CONF:0x2C, // library marker zwaveTools.openSmarthouseTools, line 296
+	COMMAND_CLASS_SCENE_CONTROLLER_CONF:0x2D, // library marker zwaveTools.openSmarthouseTools, line 297
+	COMMAND_CLASS_SCHEDULE:0x53, // library marker zwaveTools.openSmarthouseTools, line 298
+	COMMAND_CLASS_SCHEDULE_ENTRY_LOCK:0x4E, // library marker zwaveTools.openSmarthouseTools, line 299
+	COMMAND_CLASS_SCREEN_ATTRIBUTES:0x93, // library marker zwaveTools.openSmarthouseTools, line 300
+	COMMAND_CLASS_SCREEN_MD:0x92, // library marker zwaveTools.openSmarthouseTools, line 301
+	COMMAND_CLASS_SECURITY:0x98, // library marker zwaveTools.openSmarthouseTools, line 302
+	COMMAND_CLASS_SECURITY_2:0x9F, // library marker zwaveTools.openSmarthouseTools, line 303
+	COMMAND_CLASS_SECURITY_SCHEME0_MARK :0xF100, // library marker zwaveTools.openSmarthouseTools, line 304
+	COMMAND_CLASS_SENSOR_CONFIGURATION:0x9E, // library marker zwaveTools.openSmarthouseTools, line 305
+	COMMAND_CLASS_SIMPLE_AV_CONTROL:0x94, // library marker zwaveTools.openSmarthouseTools, line 306
+	COMMAND_CLASS_SOUND_SWITCH:0x79, // library marker zwaveTools.openSmarthouseTools, line 307
+	COMMAND_CLASS_SUPERVISION:0x6C, // library marker zwaveTools.openSmarthouseTools, line 308
+	COMMAND_CLASS_TARIFF_CONFIG:0x4A, // library marker zwaveTools.openSmarthouseTools, line 309
+	COMMAND_CLASS_TARIFF_TBL_MONITOR:0x4B, // library marker zwaveTools.openSmarthouseTools, line 310
+	COMMAND_CLASS_THERMOSTAT_FAN_MODE:0x44, // library marker zwaveTools.openSmarthouseTools, line 311
+	COMMAND_CLASS_THERMOSTAT_FAN_STATE:0x45, // library marker zwaveTools.openSmarthouseTools, line 312
+	COMMAND_CLASS_THERMOSTAT_MODE:0x40, // library marker zwaveTools.openSmarthouseTools, line 313
+	COMMAND_CLASS_THERMOSTAT_OPERATING_STATE:0x42, // library marker zwaveTools.openSmarthouseTools, line 314
+	COMMAND_CLASS_THERMOSTAT_SETBACK:0x47, // library marker zwaveTools.openSmarthouseTools, line 315
+	COMMAND_CLASS_THERMOSTAT_SETPOINT:0x43, // library marker zwaveTools.openSmarthouseTools, line 316
+	COMMAND_CLASS_TIME:0x8A, // library marker zwaveTools.openSmarthouseTools, line 317
+	COMMAND_CLASS_TIME_PARAMETERS:0x8B, // library marker zwaveTools.openSmarthouseTools, line 318
+	COMMAND_CLASS_TRANSPORT_SERVICE:0x55, // library marker zwaveTools.openSmarthouseTools, line 319
+	COMMAND_CLASS_USER_CODE:0x63, // library marker zwaveTools.openSmarthouseTools, line 320
+	COMMAND_CLASS_VERSION:0x86, // library marker zwaveTools.openSmarthouseTools, line 321
+	COMMAND_CLASS_WAKE_UP:0x84, // library marker zwaveTools.openSmarthouseTools, line 322
+	COMMAND_CLASS_WINDOW_COVERING:0x6A, // library marker zwaveTools.openSmarthouseTools, line 323
+	COMMAND_CLASS_ZIP:0x23, // library marker zwaveTools.openSmarthouseTools, line 324
+	COMMAND_CLASS_ZIP_6LOWPAN:0x4F, // library marker zwaveTools.openSmarthouseTools, line 325
+	COMMAND_CLASS_ZIP_GATEWAY:0x5F, // library marker zwaveTools.openSmarthouseTools, line 326
+	COMMAND_CLASS_ZIP_NAMING:0x68, // library marker zwaveTools.openSmarthouseTools, line 327
+	COMMAND_CLASS_ZIP_ND:0x58, // library marker zwaveTools.openSmarthouseTools, line 328
+	COMMAND_CLASS_ZIP_PORTAL:0x61, // library marker zwaveTools.openSmarthouseTools, line 329
+	COMMAND_CLASS_ZWAVEPLUS_INFO:0x5E, // library marker zwaveTools.openSmarthouseTools, line 330
+] // library marker zwaveTools.openSmarthouseTools, line 331
 
 // ~~~~~ end include (132) zwaveTools.openSmarthouseTools ~~~~~
 
@@ -2393,7 +2397,7 @@ void createChildDevices() // library marker zwaveTools.childDeviceTools, line 34
 			if (cd.is( null )) { // library marker zwaveTools.childDeviceTools, line 42
 				log.info "Device ${device.displayName}: creating child device: ${childNetworkId} with driver ${thisChildItem.type} and namespace: ${thisChildItem.namespace}." // library marker zwaveTools.childDeviceTools, line 43
 
-				addChildDevice(thisChildItem.namespace, thisChildItem.type, childNetworkId, [name: device.displayName, isComponent: false]) // library marker zwaveTools.childDeviceTools, line 45
+				addChildDevice(thisChildItem.namespace, thisChildItem.type, childNetworkId, [name: thisChildItem.childName ?: device.displayName, isComponent: false]) // library marker zwaveTools.childDeviceTools, line 45
 			}  // library marker zwaveTools.childDeviceTools, line 46
 		} // library marker zwaveTools.childDeviceTools, line 47
 	} // library marker zwaveTools.childDeviceTools, line 48
@@ -2477,7 +2481,7 @@ void updated() // library marker zwaveTools.parameterManagementTools, line 18
 
 	if (txtEnable) log.info "Device ${device.displayName}: new Setting values are ${settingValueMap}, Last Device Parameters were ${parameterValueMap}, Pending parameter changes are: ${pendingChanges ?: "None"}" // library marker zwaveTools.parameterManagementTools, line 36
 
-	log.debug "new pending change map is ${getPendingChangeMap()}" // library marker zwaveTools.parameterManagementTools, line 38
+	if (logEnable) log.debug "new pending change map is ${getPendingChangeMap()}" // library marker zwaveTools.parameterManagementTools, line 38
 
 	processPendingChanges() // library marker zwaveTools.parameterManagementTools, line 40
 	if (txtEnable) log.info "Device ${device.displayName}: Done updating changed parameters (if any) . . ." // library marker zwaveTools.parameterManagementTools, line 41
@@ -2589,7 +2593,7 @@ Map<Integer, BigInteger> getParameterValuesFromDevice() // library marker zwaveT
 
 void zwaveEvent(hubitat.zwave.commands.configurationv2.ConfigurationReport  cmd) // library marker zwaveTools.parameterManagementTools, line 148
 {  // library marker zwaveTools.parameterManagementTools, line 149
-	log.debug "Received a configurationReport ${cmd}" // library marker zwaveTools.parameterManagementTools, line 150
+	if (logEnable) log.debug "Received a configurationReport ${cmd}" // library marker zwaveTools.parameterManagementTools, line 150
 
 	ConcurrentHashMap parameterValues = allDevicesParameterValues.get(device.deviceNetworkId, new ConcurrentHashMap<Integer, BigInteger>(32, 0.75, 1)) // library marker zwaveTools.parameterManagementTools, line 152
 	BigInteger newValue = (cmd.size == 1) ? cmd.configurationValue[0] : cmd.scaledConfigurationValue			 // library marker zwaveTools.parameterManagementTools, line 153
