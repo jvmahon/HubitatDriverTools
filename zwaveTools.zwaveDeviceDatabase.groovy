@@ -304,7 +304,7 @@ Map getThisDeviceDatabaseRecord() {
 		endpoints:[
 					0:[
 						children:[ [type:'Generic Component Dimmer', 'namespace':'hubitat']	],
-						classes:[0, 32, 37, 38, 89, 90, 91, 94, 96, 112, 114, 115, 122, 133, 134, 142, 152]], 
+						classes:[0, 32, 38, 89, 90, 91, 94, 96, 112, 114, 115, 122, 133, 134, 142, 152]], 
 					1:[ children:[[type:'Generic Component Switch', namespace:'hubitat', childName:"Relay Switch"]], 
 						classes:[32, 37, 89, 94, 133, 142]]
 				], 

@@ -38,7 +38,7 @@ void binaryAndMultiLevelDeviceTools_refresh() {
 void sendZwaveValue(Map params = [value: null , duration: null , ep: null ] )
 {
 	Integer newValue = Math.max(Math.min(params.value, 99),0)
-	List<Integer> supportedClasses = getThisEndpointClasses(ep)
+	List<Integer> supportedClasses = getThisEndpointClasses(params.ep ?: 0)
 
 	if (supportedClasses.contains(0x26)) { // Multilevel  type device
 		if (! params.duration.is( null) ) advancedZwaveSend(zwave.switchMultilevelV4.switchMultilevelSet(value: newValue, dimmingDuration:params.duration), params.ep)	
@@ -46,7 +46,7 @@ void sendZwaveValue(Map params = [value: null , duration: null , ep: null ] )
 	} else if (supportedClasses.contains(0x25)) { // Switch Binary Type device
 		advancedZwaveSend(zwave.switchBinaryV1.switchBinarySet(switchValue: newValue ), params.ep)
 	} else if (supportedClasses.contains(0x20)) { // Basic Set Type device
-		log.warn "Device ${targetDevice.displayName}: Using Basic Set to turn on device. A more specific command class should be used!"
+		log.warn "Device ${device.displayName}: Using Basic Set to turn on device. A more specific command class should be used!"
 		advancedZwaveSend(zwave.basicV1.basicSet(value: newValue ), params.ep)
 	} else {
 		log.error "Device ${device.displayName}: Error in function sendZwaveValue(). Device does not implement a supported class to control the device!.${ep ? " Endpoint # is: ${params.ep}." : ""}"
@@ -57,7 +57,7 @@ void sendZwaveValue(Map params = [value: null , duration: null , ep: null ] )
 void zwaveEvent(hubitat.zwave.commands.switchbinaryv2.SwitchBinaryReport cmd, ep = null )
 {
 	String newSwitchState = ((cmd.value > 0) ? "on" : "off")
-	Map switchEvent = [name: "switch", value: newSwitchState, descriptionText: "Switch set", type: "physical"]
+	Map switchEvent = [name: "switch", value: newSwitchState, descriptionText: "Switch set to ${newSwitchState}", type: "physical"]
 	
 	List <com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep ?: 0)?.findAll{it.hasAttribute("switch")}
 	if (((ep ?: 0 )== 0) && device.hasAttribute ("switch")) targetDevices += device
@@ -112,8 +112,9 @@ void processSwitchReport(cmd, ep)
 
 void componentOn(com.hubitat.app.DeviceWrapper cd){ on(cd:cd) }
 
-void on(Map params = [cd: null , duration: null , level: null ])
+void on(Map inputs = [:])
 {
+	Map params = [cd: null , duration: null , level: null ] << inputs
 	Integer ep = getChildEndpointNumber(params.cd)
 	
 	sendEventToEndpoints(event:[name: "switch", value: "on", descriptionText: "Device turned on", type: "digital"] , ep:ep)
@@ -135,8 +136,11 @@ void on(Map params = [cd: null , duration: null , level: null ])
 
 void componentOff(com.hubitat.app.DeviceWrapper cd){ 	off(cd:cd) }
 
-void off(Map params = [cd: null , duration: null ]) {
+void off(Map inputs = [: ]) {
+	Map params = [cd: null , duration: null ]	<< inputs
+
 	Integer ep = getChildEndpointNumber(params.cd)
+	
 	sendEventToEndpoints(event:[name: "switch", value: "off", descriptionText: "Device turned off", type: "digital"], ep:ep)
 	sendZwaveValue(value: 0, duration: params.duration, ep: ep)
 }

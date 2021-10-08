@@ -41,7 +41,7 @@ Map getDefaultParseMap () {
 // create userDefinedParseFilter to override
 void parse(String description) {
 		hubitat.zwave.Command cmd = zwave.parse(description, (userParseMap ?: defaultParseMap))
-		if (userDefinedParseFilter) cmd = userDefinedParseFilter(cmd, description)
+		if (logEnable) log.debug "Device ${device.displayName}: For parse string ${description} parsed the command ${cmd}"
 		if (cmd) { zwaveEvent(cmd) }
 }
 
@@ -155,7 +155,8 @@ void advancedZwaveSend(Map inputs = [:]) {
 									"7601", // Lock V1
 									"3305", // Switch Color Set									
 									]
-	if (userDefinedSupervisionList) superviseThese += userDefinedSupervisionList								
+	if (userDefinedSupervisionList) superviseThese += userDefinedSupervisionList	
+	if (logEnable) log.debug "In advancedZwaveSend, received parameters ${params}, sending command ${cmd}"
 	if (superviseThese.contains(params.cmd.CMD)) {
 		sendSupervised(params)
 	} else {
