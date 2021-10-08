@@ -25,7 +25,7 @@ Integer getS2RetryPeriod() { return 1500}
 
 
 metadata {
-	definition (name: "Any Z-Wave Universal Parent Driver v1.6",namespace: "jvm", author: "jvm", singleThreaded:false) {
+	definition (name: "Any Z-Wave Universal Parent Driver v1.6.1",namespace: "jvm", author: "jvm", singleThreaded:false) {
 		capability "Initialize"
 		capability "Refresh"
 	
@@ -308,7 +308,7 @@ Map getDefaultParseMap () { // library marker zwaveTools.sendReceiveTools, line 
 // create userDefinedParseFilter to override // library marker zwaveTools.sendReceiveTools, line 41
 void parse(String description) { // library marker zwaveTools.sendReceiveTools, line 42
 		hubitat.zwave.Command cmd = zwave.parse(description, (userParseMap ?: defaultParseMap)) // library marker zwaveTools.sendReceiveTools, line 43
-		if (userDefinedParseFilter) cmd = userDefinedParseFilter(cmd, description) // library marker zwaveTools.sendReceiveTools, line 44
+		if (logEnable) log.debug "Device ${device.displayName}: For parse string ${description} parsed the command ${cmd}" // library marker zwaveTools.sendReceiveTools, line 44
 		if (cmd) { zwaveEvent(cmd) } // library marker zwaveTools.sendReceiveTools, line 45
 } // library marker zwaveTools.sendReceiveTools, line 46
 
@@ -422,141 +422,142 @@ void advancedZwaveSend(Map inputs = [:]) {  // library marker zwaveTools.sendRec
 									"7601", // Lock V1 // library marker zwaveTools.sendReceiveTools, line 155
 									"3305", // Switch Color Set									 // library marker zwaveTools.sendReceiveTools, line 156
 									] // library marker zwaveTools.sendReceiveTools, line 157
-	if (userDefinedSupervisionList) superviseThese += userDefinedSupervisionList								 // library marker zwaveTools.sendReceiveTools, line 158
-	if (superviseThese.contains(params.cmd.CMD)) { // library marker zwaveTools.sendReceiveTools, line 159
-		sendSupervised(params) // library marker zwaveTools.sendReceiveTools, line 160
-	} else { // library marker zwaveTools.sendReceiveTools, line 161
-		sendUnsupervised(params) // library marker zwaveTools.sendReceiveTools, line 162
-	} // library marker zwaveTools.sendReceiveTools, line 163
-} // library marker zwaveTools.sendReceiveTools, line 164
-void advancedZwaveSend(hubitat.zwave.Command cmd, Integer ep = null ) {  // library marker zwaveTools.sendReceiveTools, line 165
-	advancedZwaveSend(cmd:cmd, ep:ep) // library marker zwaveTools.sendReceiveTools, line 166
-} // library marker zwaveTools.sendReceiveTools, line 167
+	if (userDefinedSupervisionList) superviseThese += userDefinedSupervisionList	 // library marker zwaveTools.sendReceiveTools, line 158
+	if (logEnable) log.debug "In advancedZwaveSend, received parameters ${params}, sending command ${cmd}" // library marker zwaveTools.sendReceiveTools, line 159
+	if (superviseThese.contains(params.cmd.CMD)) { // library marker zwaveTools.sendReceiveTools, line 160
+		sendSupervised(params) // library marker zwaveTools.sendReceiveTools, line 161
+	} else { // library marker zwaveTools.sendReceiveTools, line 162
+		sendUnsupervised(params) // library marker zwaveTools.sendReceiveTools, line 163
+	} // library marker zwaveTools.sendReceiveTools, line 164
+} // library marker zwaveTools.sendReceiveTools, line 165
+void advancedZwaveSend(hubitat.zwave.Command cmd, Integer ep = null ) {  // library marker zwaveTools.sendReceiveTools, line 166
+	advancedZwaveSend(cmd:cmd, ep:ep) // library marker zwaveTools.sendReceiveTools, line 167
+} // library marker zwaveTools.sendReceiveTools, line 168
 
-void sendSupervised(hubitat.zwave.Command cmd, Integer ep = null ) {  // library marker zwaveTools.sendReceiveTools, line 169
-    sendSupervised(cmd:cmd, ep:ep) // library marker zwaveTools.sendReceiveTools, line 170
-} // library marker zwaveTools.sendReceiveTools, line 171
+void sendSupervised(hubitat.zwave.Command cmd, Integer ep = null ) {  // library marker zwaveTools.sendReceiveTools, line 170
+    sendSupervised(cmd:cmd, ep:ep) // library marker zwaveTools.sendReceiveTools, line 171
+} // library marker zwaveTools.sendReceiveTools, line 172
 
-void sendSupervised(Map inputs = [:]) {  // library marker zwaveTools.sendReceiveTools, line 173
-	Map params = [ cmd: null , onSuccess: null , onFailure: null , delay: null , ep: null ] // library marker zwaveTools.sendReceiveTools, line 174
-	params << inputs // library marker zwaveTools.sendReceiveTools, line 175
-	if (!(params.cmd instanceof hubitat.zwave.Command )) {  // library marker zwaveTools.sendReceiveTools, line 176
-		log.error "SendSupervised called with improper command type" // library marker zwaveTools.sendReceiveTools, line 177
-		return  // library marker zwaveTools.sendReceiveTools, line 178
-		} // library marker zwaveTools.sendReceiveTools, line 179
-	if (params.onSuccess && !(params.onSuccess instanceof hubitat.zwave.Command )) {  // library marker zwaveTools.sendReceiveTools, line 180
-		log.error "SendSupervised called with improper onSuccess command type" // library marker zwaveTools.sendReceiveTools, line 181
-		return  // library marker zwaveTools.sendReceiveTools, line 182
-		} // library marker zwaveTools.sendReceiveTools, line 183
-	if (params.onFailure && !(params.onFailure instanceof hubitat.zwave.Command )) {  // library marker zwaveTools.sendReceiveTools, line 184
-		log.error "SendSupervised called with improper onFailure command type" // library marker zwaveTools.sendReceiveTools, line 185
-		return  // library marker zwaveTools.sendReceiveTools, line 186
-		} // library marker zwaveTools.sendReceiveTools, line 187
+void sendSupervised(Map inputs = [:]) {  // library marker zwaveTools.sendReceiveTools, line 174
+	Map params = [ cmd: null , onSuccess: null , onFailure: null , delay: null , ep: null ] // library marker zwaveTools.sendReceiveTools, line 175
+	params << inputs // library marker zwaveTools.sendReceiveTools, line 176
+	if (!(params.cmd instanceof hubitat.zwave.Command )) {  // library marker zwaveTools.sendReceiveTools, line 177
+		log.error "SendSupervised called with improper command type" // library marker zwaveTools.sendReceiveTools, line 178
+		return  // library marker zwaveTools.sendReceiveTools, line 179
+		} // library marker zwaveTools.sendReceiveTools, line 180
+	if (params.onSuccess && !(params.onSuccess instanceof hubitat.zwave.Command )) {  // library marker zwaveTools.sendReceiveTools, line 181
+		log.error "SendSupervised called with improper onSuccess command type" // library marker zwaveTools.sendReceiveTools, line 182
+		return  // library marker zwaveTools.sendReceiveTools, line 183
+		} // library marker zwaveTools.sendReceiveTools, line 184
+	if (params.onFailure && !(params.onFailure instanceof hubitat.zwave.Command )) {  // library marker zwaveTools.sendReceiveTools, line 185
+		log.error "SendSupervised called with improper onFailure command type" // library marker zwaveTools.sendReceiveTools, line 186
+		return  // library marker zwaveTools.sendReceiveTools, line 187
+		} // library marker zwaveTools.sendReceiveTools, line 188
 
-	if (superviseThis) { // library marker zwaveTools.sendReceiveTools, line 189
-		Integer thisSessionId = getNewSessionId() // library marker zwaveTools.sendReceiveTools, line 190
-		ConcurrentHashMap commandStorage = supervisionSentCommands.get(device.getDeviceNetworkId() , new ConcurrentHashMap<Integer, hubitat.zwave.Command>(64, 0.75, 1)) // library marker zwaveTools.sendReceiveTools, line 191
+	if (superviseThis) { // library marker zwaveTools.sendReceiveTools, line 190
+		Integer thisSessionId = getNewSessionId() // library marker zwaveTools.sendReceiveTools, line 191
+		ConcurrentHashMap commandStorage = supervisionSentCommands.get(device.getDeviceNetworkId() , new ConcurrentHashMap<Integer, hubitat.zwave.Command>(64, 0.75, 1)) // library marker zwaveTools.sendReceiveTools, line 192
 
-		hubitat.zwave.Command  supervisedCommand = zwave.supervisionV1.supervisionGet(sessionID: thisSessionId, statusUpdates: true ).encapsulate(params.cmd) // library marker zwaveTools.sendReceiveTools, line 193
+		hubitat.zwave.Command  supervisedCommand = zwave.supervisionV1.supervisionGet(sessionID: thisSessionId, statusUpdates: true ).encapsulate(params.cmd) // library marker zwaveTools.sendReceiveTools, line 194
 
-		commandStorage.put(thisSessionId, [cmd:(params.cmd), onSuccess: (params.onSuccess), onFailure:(params.onFailure), ep:(params.ep), attempt:1, sessionId:thisSessionId])  // library marker zwaveTools.sendReceiveTools, line 195
+		commandStorage.put(thisSessionId, [cmd:(params.cmd), onSuccess: (params.onSuccess), onFailure:(params.onFailure), ep:(params.ep), attempt:1, sessionId:thisSessionId])  // library marker zwaveTools.sendReceiveTools, line 196
 
-		basicZwaveSend(supervisedCommand, ep)	 // library marker zwaveTools.sendReceiveTools, line 197
+		basicZwaveSend(supervisedCommand, ep)	 // library marker zwaveTools.sendReceiveTools, line 198
 
-		Integer retryTime	=  Math.min( Math.max( (s2RetryPeriod ?: 2000), 500), 5000) // library marker zwaveTools.sendReceiveTools, line 199
-		runInMillis( retryTime, supervisionCheck)	 // library marker zwaveTools.sendReceiveTools, line 200
+		Integer retryTime	=  Math.min( Math.max( (s2RetryPeriod ?: 2000), 500), 5000) // library marker zwaveTools.sendReceiveTools, line 200
+		runInMillis( retryTime, supervisionCheck)	 // library marker zwaveTools.sendReceiveTools, line 201
 
-	} else { // library marker zwaveTools.sendReceiveTools, line 202
-		basicZwaveSend(params.cmd, params.ep) // library marker zwaveTools.sendReceiveTools, line 203
-	} // library marker zwaveTools.sendReceiveTools, line 204
-} // library marker zwaveTools.sendReceiveTools, line 205
-void sendUnsupervised(hubitat.zwave.Command cmd, Integer ep = null ) {  // library marker zwaveTools.sendReceiveTools, line 206
-	basicZwaveSend(cmd, ep) // library marker zwaveTools.sendReceiveTools, line 207
-} // library marker zwaveTools.sendReceiveTools, line 208
-void sendUnsupervised(Map inputs = [:]) {  // library marker zwaveTools.sendReceiveTools, line 209
-	Map params = [ cmd: null , onSuccess: null , onFailure: null , delay: null , ep: null ] // library marker zwaveTools.sendReceiveTools, line 210
-	params << inputs // library marker zwaveTools.sendReceiveTools, line 211
-	basicZwaveSend(params.cmd, params.ep) // library marker zwaveTools.sendReceiveTools, line 212
-} // library marker zwaveTools.sendReceiveTools, line 213
+	} else { // library marker zwaveTools.sendReceiveTools, line 203
+		basicZwaveSend(params.cmd, params.ep) // library marker zwaveTools.sendReceiveTools, line 204
+	} // library marker zwaveTools.sendReceiveTools, line 205
+} // library marker zwaveTools.sendReceiveTools, line 206
+void sendUnsupervised(hubitat.zwave.Command cmd, Integer ep = null ) {  // library marker zwaveTools.sendReceiveTools, line 207
+	basicZwaveSend(cmd, ep) // library marker zwaveTools.sendReceiveTools, line 208
+} // library marker zwaveTools.sendReceiveTools, line 209
+void sendUnsupervised(Map inputs = [:]) {  // library marker zwaveTools.sendReceiveTools, line 210
+	Map params = [ cmd: null , onSuccess: null , onFailure: null , delay: null , ep: null ] // library marker zwaveTools.sendReceiveTools, line 211
+	params << inputs // library marker zwaveTools.sendReceiveTools, line 212
+	basicZwaveSend(params.cmd, params.ep) // library marker zwaveTools.sendReceiveTools, line 213
+} // library marker zwaveTools.sendReceiveTools, line 214
 
-// This handles a supervised message (a "get") received from the Z-Wave device // // library marker zwaveTools.sendReceiveTools, line 215
-void zwaveEvent(hubitat.zwave.commands.supervisionv1.SupervisionGet cmd, Integer ep = null ) { // library marker zwaveTools.sendReceiveTools, line 216
-    hubitat.zwave.Command encapsulatedCommand = cmd.encapsulatedCommand((userParseMap ?: defaultParseMap)) // library marker zwaveTools.sendReceiveTools, line 217
+// This handles a supervised message (a "get") received from the Z-Wave device // // library marker zwaveTools.sendReceiveTools, line 216
+void zwaveEvent(hubitat.zwave.commands.supervisionv1.SupervisionGet cmd, Integer ep = null ) { // library marker zwaveTools.sendReceiveTools, line 217
+    hubitat.zwave.Command encapsulatedCommand = cmd.encapsulatedCommand((userParseMap ?: defaultParseMap)) // library marker zwaveTools.sendReceiveTools, line 218
 
-    if (encapsulatedCommand) { // library marker zwaveTools.sendReceiveTools, line 219
-		if ( ep ) { // library marker zwaveTools.sendReceiveTools, line 220
-			zwaveEvent(encapsulatedCommand, ep) // library marker zwaveTools.sendReceiveTools, line 221
-		} else { // library marker zwaveTools.sendReceiveTools, line 222
-			zwaveEvent(encapsulatedCommand) // library marker zwaveTools.sendReceiveTools, line 223
-		} // library marker zwaveTools.sendReceiveTools, line 224
-    } // library marker zwaveTools.sendReceiveTools, line 225
+    if (encapsulatedCommand) { // library marker zwaveTools.sendReceiveTools, line 220
+		if ( ep ) { // library marker zwaveTools.sendReceiveTools, line 221
+			zwaveEvent(encapsulatedCommand, ep) // library marker zwaveTools.sendReceiveTools, line 222
+		} else { // library marker zwaveTools.sendReceiveTools, line 223
+			zwaveEvent(encapsulatedCommand) // library marker zwaveTools.sendReceiveTools, line 224
+		} // library marker zwaveTools.sendReceiveTools, line 225
+    } // library marker zwaveTools.sendReceiveTools, line 226
 
-	basicZwaveSend( new hubitat.zwave.commands.supervisionv1.SupervisionReport(sessionID: cmd.sessionID, reserved: 0, moreStatusUpdates: false, status: 0xFF, duration: 0), ep) // library marker zwaveTools.sendReceiveTools, line 227
-} // library marker zwaveTools.sendReceiveTools, line 228
+	basicZwaveSend( new hubitat.zwave.commands.supervisionv1.SupervisionReport(sessionID: cmd.sessionID, reserved: 0, moreStatusUpdates: false, status: 0xFF, duration: 0), ep) // library marker zwaveTools.sendReceiveTools, line 228
+} // library marker zwaveTools.sendReceiveTools, line 229
 
-void zwaveEvent(hubitat.zwave.commands.supervisionv1.SupervisionReport cmd, Integer ep = null )  // library marker zwaveTools.sendReceiveTools, line 230
-{ // library marker zwaveTools.sendReceiveTools, line 231
-	ConcurrentHashMap whatThisDeviceSent = supervisionSentCommands?.get(device.getDeviceNetworkId() ) // library marker zwaveTools.sendReceiveTools, line 232
+void zwaveEvent(hubitat.zwave.commands.supervisionv1.SupervisionReport cmd, Integer ep = null )  // library marker zwaveTools.sendReceiveTools, line 231
+{ // library marker zwaveTools.sendReceiveTools, line 232
+	ConcurrentHashMap whatThisDeviceSent = supervisionSentCommands?.get(device.getDeviceNetworkId() ) // library marker zwaveTools.sendReceiveTools, line 233
 
-	Map whatWasSent = whatThisDeviceSent.get((Integer) cmd.sessionID) // library marker zwaveTools.sendReceiveTools, line 234
+	Map whatWasSent = whatThisDeviceSent.get((Integer) cmd.sessionID) // library marker zwaveTools.sendReceiveTools, line 235
 
-    if (!whatWasSent) { // library marker zwaveTools.sendReceiveTools, line 236
-        log.warn "Device ${device.displayName}: Received SuperVision Report ${cmd} for endpoint ${ep},  but what was sent is null. May have been processed by a duplicate SuperVision Report. If this happens repeatedly, report issue at https://github.com/jvmahon/HubitatDriverTools/issues" // library marker zwaveTools.sendReceiveTools, line 237
-        return // library marker zwaveTools.sendReceiveTools, line 238
-    } // library marker zwaveTools.sendReceiveTools, line 239
+    if (!whatWasSent) { // library marker zwaveTools.sendReceiveTools, line 237
+        log.warn "Device ${device.displayName}: Received SuperVision Report ${cmd} for endpoint ${ep},  but what was sent is null. May have been processed by a duplicate SuperVision Report. If this happens repeatedly, report issue at https://github.com/jvmahon/HubitatDriverTools/issues" // library marker zwaveTools.sendReceiveTools, line 238
+        return // library marker zwaveTools.sendReceiveTools, line 239
+    } // library marker zwaveTools.sendReceiveTools, line 240
 
-	switch ((Integer) cmd.status) // library marker zwaveTools.sendReceiveTools, line 241
-	{ // library marker zwaveTools.sendReceiveTools, line 242
-		case 0x00: // "No Support"  // library marker zwaveTools.sendReceiveTools, line 243
-			whatWasSent = whatThisDeviceSent?.remove((Integer)cmd.sessionID) // library marker zwaveTools.sendReceiveTools, line 244
-			if (ignoreSupervisionNoSupportCode()) { // library marker zwaveTools.sendReceiveTools, line 245
-                if (logEnable) log.warn "Device ${device.displayName}: Received a 'No Support' supervision report ${cmd} for command ${whatWasSent}, but this device has known problems with its Supervision implementation so the 'No Support' code was ignored." // library marker zwaveTools.sendReceiveTools, line 246
-				if (whatWasSent.onSuccess) basicZwaveSend(whatWasSent.onSuccess, whatWasSent.ep)  // library marker zwaveTools.sendReceiveTools, line 247
+	switch ((Integer) cmd.status) // library marker zwaveTools.sendReceiveTools, line 242
+	{ // library marker zwaveTools.sendReceiveTools, line 243
+		case 0x00: // "No Support"  // library marker zwaveTools.sendReceiveTools, line 244
+			whatWasSent = whatThisDeviceSent?.remove((Integer)cmd.sessionID) // library marker zwaveTools.sendReceiveTools, line 245
+			if (ignoreSupervisionNoSupportCode()) { // library marker zwaveTools.sendReceiveTools, line 246
+                if (logEnable) log.warn "Device ${device.displayName}: Received a 'No Support' supervision report ${cmd} for command ${whatWasSent}, but this device has known problems with its Supervision implementation so the 'No Support' code was ignored." // library marker zwaveTools.sendReceiveTools, line 247
+				if (whatWasSent.onSuccess) basicZwaveSend(whatWasSent.onSuccess, whatWasSent.ep)  // library marker zwaveTools.sendReceiveTools, line 248
 
-			} else 	{ // library marker zwaveTools.sendReceiveTools, line 249
-				log.warn "Device ${device.displayName}: Z-Wave Command supervision reported as 'No Support' for command ${whatWasSent}. If you see this warning repeatedly, please report as an issue at https://github.com/jvmahon/HubitatDriverTools/issues. Please provide the manufacturer, deviceType, and deviceId code for your device as shown on the device's Hubitat device web page." // library marker zwaveTools.sendReceiveTools, line 250
-				if (whatWasSent.onFailure) basicZwaveSend(whatWasSent.onFailure, whatWasSent.ep)  // library marker zwaveTools.sendReceiveTools, line 251
-			} // library marker zwaveTools.sendReceiveTools, line 252
-			break // library marker zwaveTools.sendReceiveTools, line 253
-		case 0x01: // "working" - Remove check if you get back a "working" status since you know device is processing the command. // library marker zwaveTools.sendReceiveTools, line 254
-			whatWasSent = whatThisDeviceSent?.get((Integer)cmd.sessionID) // library marker zwaveTools.sendReceiveTools, line 255
-			if (txtEnable) log.info "Device ${device.displayName}: Still processing command: ${whatWasSent}." // library marker zwaveTools.sendReceiveTools, line 256
-			runInMillis(5000, supervisionCheck)	 // library marker zwaveTools.sendReceiveTools, line 257
-			break ; // library marker zwaveTools.sendReceiveTools, line 258
-		case 0x02: // "Fail" // library marker zwaveTools.sendReceiveTools, line 259
-			whatWasSent = whatThisDeviceSent?.remove((Integer) cmd.sessionID) // library marker zwaveTools.sendReceiveTools, line 260
-			log.warn "Device ${device.displayName}: Z-Wave supervised command reported failure. Failed command: ${whatWasSent}." // library marker zwaveTools.sendReceiveTools, line 261
-			if (whatWasSent.onFailure) basicZwaveSend(whatWasSent.onFailure, whatWasSent.ep)  // library marker zwaveTools.sendReceiveTools, line 262
+			} else 	{ // library marker zwaveTools.sendReceiveTools, line 250
+				log.warn "Device ${device.displayName}: Z-Wave Command supervision reported as 'No Support' for command ${whatWasSent}. If you see this warning repeatedly, please report as an issue at https://github.com/jvmahon/HubitatDriverTools/issues. Please provide the manufacturer, deviceType, and deviceId code for your device as shown on the device's Hubitat device web page." // library marker zwaveTools.sendReceiveTools, line 251
+				if (whatWasSent.onFailure) basicZwaveSend(whatWasSent.onFailure, whatWasSent.ep)  // library marker zwaveTools.sendReceiveTools, line 252
+			} // library marker zwaveTools.sendReceiveTools, line 253
+			break // library marker zwaveTools.sendReceiveTools, line 254
+		case 0x01: // "working" - Remove check if you get back a "working" status since you know device is processing the command. // library marker zwaveTools.sendReceiveTools, line 255
+			whatWasSent = whatThisDeviceSent?.get((Integer)cmd.sessionID) // library marker zwaveTools.sendReceiveTools, line 256
+			if (txtEnable) log.info "Device ${device.displayName}: Still processing command: ${whatWasSent}." // library marker zwaveTools.sendReceiveTools, line 257
+			runInMillis(5000, supervisionCheck)	 // library marker zwaveTools.sendReceiveTools, line 258
+			break ; // library marker zwaveTools.sendReceiveTools, line 259
+		case 0x02: // "Fail" // library marker zwaveTools.sendReceiveTools, line 260
+			whatWasSent = whatThisDeviceSent?.remove((Integer) cmd.sessionID) // library marker zwaveTools.sendReceiveTools, line 261
+			log.warn "Device ${device.displayName}: Z-Wave supervised command reported failure. Failed command: ${whatWasSent}." // library marker zwaveTools.sendReceiveTools, line 262
+			if (whatWasSent.onFailure) basicZwaveSend(whatWasSent.onFailure, whatWasSent.ep)  // library marker zwaveTools.sendReceiveTools, line 263
 
-			break // library marker zwaveTools.sendReceiveTools, line 264
-		case 0xFF: // "Success" // library marker zwaveTools.sendReceiveTools, line 265
-			whatWasSent = whatThisDeviceSent?.remove((Integer) cmd.sessionID) // library marker zwaveTools.sendReceiveTools, line 266
-			if (txtEnable || logEnable) log.info "Device ${device.displayName}: Device successfully processed supervised command ${whatWasSent}." // library marker zwaveTools.sendReceiveTools, line 267
-			if (whatWasSent.onSuccess) basicZwaveSend(whatWasSent.onSuccess, whatWasSent.ep)  // library marker zwaveTools.sendReceiveTools, line 268
-			break // library marker zwaveTools.sendReceiveTools, line 269
-	} // library marker zwaveTools.sendReceiveTools, line 270
-	if (whatThisDeviceSent?.size() < 1) unschedule(supervisionCheck) // library marker zwaveTools.sendReceiveTools, line 271
-} // library marker zwaveTools.sendReceiveTools, line 272
+			break // library marker zwaveTools.sendReceiveTools, line 265
+		case 0xFF: // "Success" // library marker zwaveTools.sendReceiveTools, line 266
+			whatWasSent = whatThisDeviceSent?.remove((Integer) cmd.sessionID) // library marker zwaveTools.sendReceiveTools, line 267
+			if (txtEnable || logEnable) log.info "Device ${device.displayName}: Device successfully processed supervised command ${whatWasSent}." // library marker zwaveTools.sendReceiveTools, line 268
+			if (whatWasSent.onSuccess) basicZwaveSend(whatWasSent.onSuccess, whatWasSent.ep)  // library marker zwaveTools.sendReceiveTools, line 269
+			break // library marker zwaveTools.sendReceiveTools, line 270
+	} // library marker zwaveTools.sendReceiveTools, line 271
+	if (whatThisDeviceSent?.size() < 1) unschedule(supervisionCheck) // library marker zwaveTools.sendReceiveTools, line 272
+} // library marker zwaveTools.sendReceiveTools, line 273
 
-void supervisionCheck() { // library marker zwaveTools.sendReceiveTools, line 274
-    // re-attempt supervison once, else send without supervision // library marker zwaveTools.sendReceiveTools, line 275
-	ConcurrentHashMap tryAgain = supervisionSentCommands?.get(device.getDeviceNetworkId()) // library marker zwaveTools.sendReceiveTools, line 276
-	tryAgain?.each{ thisSessionId, whatWasSent -> // library marker zwaveTools.sendReceiveTools, line 277
+void supervisionCheck() { // library marker zwaveTools.sendReceiveTools, line 275
+    // re-attempt supervison once, else send without supervision // library marker zwaveTools.sendReceiveTools, line 276
+	ConcurrentHashMap tryAgain = supervisionSentCommands?.get(device.getDeviceNetworkId()) // library marker zwaveTools.sendReceiveTools, line 277
+	tryAgain?.each{ thisSessionId, whatWasSent -> // library marker zwaveTools.sendReceiveTools, line 278
 
-		Integer retries = Math.min( Math.max( (s2MaxRetries ?: 2), 1), 5) // library marker zwaveTools.sendReceiveTools, line 279
-		if (whatWasSent.attempt <  retries ) { // library marker zwaveTools.sendReceiveTools, line 280
-			whatWasSent.attempt += 1 // library marker zwaveTools.sendReceiveTools, line 281
-			hubitat.zwave.Command  supervisedCommand = zwave.supervisionV1.supervisionGet(sessionID: thisSessionId, statusUpdates: true ).encapsulate(whatWasSent.cmd) // library marker zwaveTools.sendReceiveTools, line 282
-			if (logEnable) log.debug "Device ${device.displayName}: Reattempting command ${whatWasSent}." // library marker zwaveTools.sendReceiveTools, line 283
+		Integer retries = Math.min( Math.max( (s2MaxRetries ?: 2), 1), 5) // library marker zwaveTools.sendReceiveTools, line 280
+		if (whatWasSent.attempt <  retries ) { // library marker zwaveTools.sendReceiveTools, line 281
+			whatWasSent.attempt += 1 // library marker zwaveTools.sendReceiveTools, line 282
+			hubitat.zwave.Command  supervisedCommand = zwave.supervisionV1.supervisionGet(sessionID: thisSessionId, statusUpdates: true ).encapsulate(whatWasSent.cmd) // library marker zwaveTools.sendReceiveTools, line 283
+			if (logEnable) log.debug "Device ${device.displayName}: Reattempting command ${whatWasSent}." // library marker zwaveTools.sendReceiveTools, line 284
 
-			basicZwaveSend(supervisedCommand, whatWasSent.ep)	 // library marker zwaveTools.sendReceiveTools, line 285
-		} else { // library marker zwaveTools.sendReceiveTools, line 286
-			if (logEnable) log.debug "Device ${device.displayName}: Supervision command retries exceeded. Resending command without supervision. Command ${whatWasSent}." // library marker zwaveTools.sendReceiveTools, line 287
-			basicZwaveSend(whatWasSent.cmd, whatWasSent.ep) // library marker zwaveTools.sendReceiveTools, line 288
-			supervisionSentCommands?.get(device.getDeviceNetworkId()).remove((Integer) thisSessionId)		 // library marker zwaveTools.sendReceiveTools, line 289
-		} // library marker zwaveTools.sendReceiveTools, line 290
-	} // library marker zwaveTools.sendReceiveTools, line 291
-} // library marker zwaveTools.sendReceiveTools, line 292
+			basicZwaveSend(supervisedCommand, whatWasSent.ep)	 // library marker zwaveTools.sendReceiveTools, line 286
+		} else { // library marker zwaveTools.sendReceiveTools, line 287
+			if (logEnable) log.debug "Device ${device.displayName}: Supervision command retries exceeded. Resending command without supervision. Command ${whatWasSent}." // library marker zwaveTools.sendReceiveTools, line 288
+			basicZwaveSend(whatWasSent.cmd, whatWasSent.ep) // library marker zwaveTools.sendReceiveTools, line 289
+			supervisionSentCommands?.get(device.getDeviceNetworkId()).remove((Integer) thisSessionId)		 // library marker zwaveTools.sendReceiveTools, line 290
+		} // library marker zwaveTools.sendReceiveTools, line 291
+	} // library marker zwaveTools.sendReceiveTools, line 292
+} // library marker zwaveTools.sendReceiveTools, line 293
 
 
 
@@ -1073,7 +1074,7 @@ Map getThisDeviceDatabaseRecord() { // library marker zwaveTools.zwaveDeviceData
 		endpoints:[ // library marker zwaveTools.zwaveDeviceDatabase, line 304
 					0:[ // library marker zwaveTools.zwaveDeviceDatabase, line 305
 						children:[ [type:'Generic Component Dimmer', 'namespace':'hubitat']	], // library marker zwaveTools.zwaveDeviceDatabase, line 306
-						classes:[0, 32, 37, 38, 89, 90, 91, 94, 96, 112, 114, 115, 122, 133, 134, 142, 152]],  // library marker zwaveTools.zwaveDeviceDatabase, line 307
+						classes:[0, 32, 38, 89, 90, 91, 94, 96, 112, 114, 115, 122, 133, 134, 142, 152]],  // library marker zwaveTools.zwaveDeviceDatabase, line 307
 					1:[ children:[[type:'Generic Component Switch', namespace:'hubitat', childName:"Relay Switch"]],  // library marker zwaveTools.zwaveDeviceDatabase, line 308
 						classes:[32, 37, 89, 94, 133, 142]] // library marker zwaveTools.zwaveDeviceDatabase, line 309
 				],  // library marker zwaveTools.zwaveDeviceDatabase, line 310
@@ -1683,7 +1684,7 @@ void binaryAndMultiLevelDeviceTools_refresh() { // library marker zwaveTools.bin
 void sendZwaveValue(Map params = [value: null , duration: null , ep: null ] ) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 38
 { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 39
 	Integer newValue = Math.max(Math.min(params.value, 99),0) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 40
-	List<Integer> supportedClasses = getThisEndpointClasses(ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 41
+	List<Integer> supportedClasses = getThisEndpointClasses(params.ep ?: 0) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 41
 
 	if (supportedClasses.contains(0x26)) { // Multilevel  type device // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 43
 		if (! params.duration.is( null) ) advancedZwaveSend(zwave.switchMultilevelV4.switchMultilevelSet(value: newValue, dimmingDuration:params.duration), params.ep)	 // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 44
@@ -1691,7 +1692,7 @@ void sendZwaveValue(Map params = [value: null , duration: null , ep: null ] ) //
 	} else if (supportedClasses.contains(0x25)) { // Switch Binary Type device // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 46
 		advancedZwaveSend(zwave.switchBinaryV1.switchBinarySet(switchValue: newValue ), params.ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 47
 	} else if (supportedClasses.contains(0x20)) { // Basic Set Type device // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 48
-		log.warn "Device ${targetDevice.displayName}: Using Basic Set to turn on device. A more specific command class should be used!" // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 49
+		log.warn "Device ${device.displayName}: Using Basic Set to turn on device. A more specific command class should be used!" // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 49
 		advancedZwaveSend(zwave.basicV1.basicSet(value: newValue ), params.ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 50
 	} else { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 51
 		log.error "Device ${device.displayName}: Error in function sendZwaveValue(). Device does not implement a supported class to control the device!.${ep ? " Endpoint # is: ${params.ep}." : ""}" // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 52
@@ -1702,7 +1703,7 @@ void sendZwaveValue(Map params = [value: null , duration: null , ep: null ] ) //
 void zwaveEvent(hubitat.zwave.commands.switchbinaryv2.SwitchBinaryReport cmd, ep = null ) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 57
 { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 58
 	String newSwitchState = ((cmd.value > 0) ? "on" : "off") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 59
-	Map switchEvent = [name: "switch", value: newSwitchState, descriptionText: "Switch set", type: "physical"] // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 60
+	Map switchEvent = [name: "switch", value: newSwitchState, descriptionText: "Switch set to ${newSwitchState}", type: "physical"] // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 60
 
 	List <com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep ?: 0)?.findAll{it.hasAttribute("switch")} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 62
 	if (((ep ?: 0 )== 0) && device.hasAttribute ("switch")) targetDevices += device // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 63
@@ -1757,154 +1758,158 @@ void processSwitchReport(cmd, ep) // library marker zwaveTools.binaryAndMultilev
 
 void componentOn(com.hubitat.app.DeviceWrapper cd){ on(cd:cd) } // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 113
 
-void on(Map params = [cd: null , duration: null , level: null ]) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 115
+void on(Map inputs = [:]) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 115
 { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 116
-	Integer ep = getChildEndpointNumber(params.cd) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 117
+	Map params = [cd: null , duration: null , level: null ] << inputs // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 117
+	Integer ep = getChildEndpointNumber(params.cd) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 118
 
-	sendEventToEndpoints(event:[name: "switch", value: "on", descriptionText: "Device turned on", type: "digital"] , ep:ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 119
+	sendEventToEndpoints(event:[name: "switch", value: "on", descriptionText: "Device turned on", type: "digital"] , ep:ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 120
 
-	Integer targetLevel = 100 // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 121
-	if (params.level) { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 122
-		targetLevel = (params.level as Integer)  // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 123
-	} else { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 124
-		List<com.hubitat.app.DeviceWrapper> targets = getChildDeviceListByEndpoint(ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 125
-		if (ep == 0) targets += device // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 126
-		targetLevel = (targets?.find{it.hasAttribute("level")}?.currentValue("level") as Integer) ?: 100 // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 127
-	} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 128
-	targetLevel = Math.min(Math.max(targetLevel, 1), 100) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 129
+	Integer targetLevel = 100 // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 122
+	if (params.level) { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 123
+		targetLevel = (params.level as Integer)  // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 124
+	} else { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 125
+		List<com.hubitat.app.DeviceWrapper> targets = getChildDeviceListByEndpoint(ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 126
+		if (ep == 0) targets += device // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 127
+		targetLevel = (targets?.find{it.hasAttribute("level")}?.currentValue("level") as Integer) ?: 100 // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 128
+	} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 129
+	targetLevel = Math.min(Math.max(targetLevel, 1), 100) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 130
 
-	sendEventToEndpoints(event:[name: "level", value: targetLevel, descriptionText: "Device level set", unit:"%", type: "digital"], ep:ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 131
+	sendEventToEndpoints(event:[name: "level", value: targetLevel, descriptionText: "Device level set", unit:"%", type: "digital"], ep:ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 132
 
-	sendZwaveValue(value: targetLevel, duration: params.duration, ep: ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 133
-} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 134
+	sendZwaveValue(value: targetLevel, duration: params.duration, ep: ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 134
+} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 135
 
-void componentOff(com.hubitat.app.DeviceWrapper cd){ 	off(cd:cd) } // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 136
+void componentOff(com.hubitat.app.DeviceWrapper cd){ 	off(cd:cd) } // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 137
 
-void off(Map params = [cd: null , duration: null ]) { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 138
-	Integer ep = getChildEndpointNumber(params.cd) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 139
-	sendEventToEndpoints(event:[name: "switch", value: "off", descriptionText: "Device turned off", type: "digital"], ep:ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 140
-	sendZwaveValue(value: 0, duration: params.duration, ep: ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 141
-} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 142
+void off(Map inputs = [: ]) { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 139
+	Map params = [cd: null , duration: null ]	<< inputs // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 140
 
-void componentSetLevel(com.hubitat.app.DeviceWrapper cd, level, transitionTime = null) { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 144
-	if (cd.hasCapability("FanControl") ) { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 145
-			setSpeed(cd:cd, level:level, speed:levelToSpeed(level as Integer)) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 146
-		} else {  // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 147
-			setLevel(level:level, duration:transitionTime, cd:cd)  // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 148
-		} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 149
-} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 150
+	Integer ep = getChildEndpointNumber(params.cd) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 142
 
-void setLevel(level, duration = null ) { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 152
-	setLevel(level:level, duration:duration) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 153
+	sendEventToEndpoints(event:[name: "switch", value: "off", descriptionText: "Device turned off", type: "digital"], ep:ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 144
+	sendZwaveValue(value: 0, duration: params.duration, ep: ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 145
+} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 146
+
+void componentSetLevel(com.hubitat.app.DeviceWrapper cd, level, transitionTime = null) { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 148
+	if (cd.hasCapability("FanControl") ) { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 149
+			setSpeed(cd:cd, level:level, speed:levelToSpeed(level as Integer)) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 150
+		} else {  // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 151
+			setLevel(level:level, duration:transitionTime, cd:cd)  // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 152
+		} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 153
 } // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 154
 
-void setLevel(Map params = [cd: null , level: null , duration: null ]) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 156
-{ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 157
-	if ( (params.level as Integer) <= 0) { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 158
-		off(cd:params.cd, duration:params.duration) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 159
-	} else { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 160
-		on(cd:params.cd, level:params.level, duration:params.duration) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 161
-	} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 162
-} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 163
+void setLevel(level, duration = null ) { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 156
+	setLevel(level:level, duration:duration) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 157
+} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 158
+
+void setLevel(Map params = [cd: null , level: null , duration: null ]) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 160
+{ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 161
+	if ( (params.level as Integer) <= 0) { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 162
+		off(cd:params.cd, duration:params.duration) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 163
+	} else { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 164
+		on(cd:params.cd, level:params.level, duration:params.duration) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 165
+	} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 166
+} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 167
 
 
-void componentStartLevelChange(com.hubitat.app.DeviceWrapper cd, direction) { startLevelChange(direction, cd) } // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 166
-void startLevelChange(direction, cd = null ){ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 167
-	com.hubitat.app.DeviceWrapper targetDevice = (cd ? cd : device) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 168
-	Integer ep = cd ? (cd.deviceNetworkId.split("-ep")[-1] as Integer) : null // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 169
+void componentStartLevelChange(com.hubitat.app.DeviceWrapper cd, direction) { startLevelChange(direction, cd) } // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 170
+void startLevelChange(direction, cd = null ){ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 171
+	com.hubitat.app.DeviceWrapper targetDevice = (cd ? cd : device) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 172
+	Integer ep = cd ? (cd.deviceNetworkId.split("-ep")[-1] as Integer) : null // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 173
 
-    Integer upDown = (direction == "down") ? 1 : 0 // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 171
+    Integer upDown = (direction == "down") ? 1 : 0 // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 175
 
-	def sendMe = zwave.switchMultilevelV1.switchMultilevelStartLevelChange(upDown: upDown, ignoreStartLevel: 1, startLevel: 0) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 173
+	def sendMe = zwave.switchMultilevelV1.switchMultilevelStartLevelChange(upDown: upDown, ignoreStartLevel: 1, startLevel: 0) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 177
 
-    advancedZwaveSend(sendMe, ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 175
-} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 176
+    advancedZwaveSend(sendMe, ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 179
+} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 180
 
 
 
-void componentStopLevelChange(com.hubitat.app.DeviceWrapper cd) { stopLevelChange(cd) } // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 180
-void stopLevelChange(cd = null ){ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 181
-	com.hubitat.app.DeviceWrapper targetDevice = (cd ? cd : device) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 182
-	Integer ep = cd ? (cd.deviceNetworkId.split("-ep")[-1] as Integer) : null // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 183
+void componentStopLevelChange(com.hubitat.app.DeviceWrapper cd) { stopLevelChange(cd) } // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 184
+void stopLevelChange(cd = null ){ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 185
+	com.hubitat.app.DeviceWrapper targetDevice = (cd ? cd : device) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 186
+	Integer ep = cd ? (cd.deviceNetworkId.split("-ep")[-1] as Integer) : null // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 187
 
-	advancedZwaveSend(zwave.switchMultilevelV4.switchMultilevelStopLevelChange(), ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 185
-	advancedZwaveSend(zwave.basicV1.basicGet(), ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 186
-} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 187
+	advancedZwaveSend(zwave.switchMultilevelV4.switchMultilevelStopLevelChange(), ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 189
+	advancedZwaveSend(zwave.basicV1.basicGet(), ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 190
+} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 191
 
-//////////////////////////////////////////////////////// // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 189
-//////                Handle Fans                /////// // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 190
-//////////////////////////////////////////////////////// // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 191
+//////////////////////////////////////////////////////// // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 193
+//////                Handle Fans                /////// // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 194
+//////////////////////////////////////////////////////// // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 195
 
-String levelToSpeed(Integer level) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 193
-{ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 194
-// 	Map speeds = [(0..0):"off", (1..20):"low", (21..40):"medium-low", (41-60):"medium", (61..80):"medium-high", (81..100):"high"] // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 195
-//	return (speeds.find{ key, value -> key.contains(level) }).value // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 196
-	switch (level) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 197
-	{ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 198
-	case 0 : 		return "off" ; break // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 199
-	case 1..20: 	return "low" ; break // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 200
-	case 21..40: 	return "medium-low" ; break // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 201
-	case 41..60: 	return "medium" ; break // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 202
-	case 61..80: 	return "medium-high" ; break // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 203
-	case 81..100: 	return "high" ; break // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 204
-	default : return null // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 205
-	} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 206
-} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 207
-
-Integer speedToLevel(String speed) { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 209
-	return ["off": 0, "low":20, "medium-low":40, "medium":60, "medium-high":80, "high":100].get(speed) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 210
+String levelToSpeed(Integer level) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 197
+{ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 198
+// 	Map speeds = [(0..0):"off", (1..20):"low", (21..40):"medium-low", (41-60):"medium", (61..80):"medium-high", (81..100):"high"] // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 199
+//	return (speeds.find{ key, value -> key.contains(level) }).value // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 200
+	switch (level) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 201
+	{ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 202
+	case 0 : 		return "off" ; break // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 203
+	case 1..20: 	return "low" ; break // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 204
+	case 21..40: 	return "medium-low" ; break // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 205
+	case 41..60: 	return "medium" ; break // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 206
+	case 61..80: 	return "medium-high" ; break // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 207
+	case 81..100: 	return "high" ; break // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 208
+	default : return null // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 209
+	} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 210
 } // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 211
 
-void componentSetSpeed(com.hubitat.app.DeviceWrapper cd, speed) { setSpeed(speed:speed, cd:cd) } // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 213
-void setSpeed(speed, com.hubitat.app.DeviceWrapper cd = null ) { setSpeed(speed:speed, cd:cd) } // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 214
-void setSpeed(Map params = [speed: null , level: null , cd: null ]) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 215
-{ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 216
-	com.hubitat.app.DeviceWrapper originatingDevice = params.cd ?: device // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 217
-	Integer ep = params.cd ? (originatingDevice.deviceNetworkId.split("-ep")[-1] as Integer) : 0 // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 218
+Integer speedToLevel(String speed) { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 213
+	return ["off": 0, "low":20, "medium-low":40, "medium":60, "medium-high":80, "high":100].get(speed) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 214
+} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 215
 
-	List<com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 220
+void componentSetSpeed(com.hubitat.app.DeviceWrapper cd, speed) { setSpeed(speed:speed, cd:cd) } // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 217
+void setSpeed(speed, com.hubitat.app.DeviceWrapper cd = null ) { setSpeed(speed:speed, cd:cd) } // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 218
+void setSpeed(Map params = [speed: null , level: null , cd: null ]) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 219
+{ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 220
+	com.hubitat.app.DeviceWrapper originatingDevice = params.cd ?: device // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 221
+	Integer ep = params.cd ? (originatingDevice.deviceNetworkId.split("-ep")[-1] as Integer) : 0 // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 222
 
-	if (params.speed.is( null ) ) { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 222
-		log.error "Device ${originatingDevice.displayName}: setSpeed command received without a valid speed setting. Speed setting was ${params.speed}. Returning without doing anything!" // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 223
-		return // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 224
-	} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 225
+	List<com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 224
 
-    if (logEnable) log.info "Device ${device.displayName}: received setSpeed(${params.speed}) request from child ${originatingDevice.displayName}" // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 227
+	if (params.speed.is( null ) ) { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 226
+		log.error "Device ${originatingDevice.displayName}: setSpeed command received without a valid speed setting. Speed setting was ${params.speed}. Returning without doing anything!" // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 227
+		return // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 228
+	} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 229
 
-	String currentOnState = originatingDevice.currentValue("switch") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 229
-	Integer currentLevel = originatingDevice.currentValue("level") // Null if attribute isn't supported. // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 230
-	Integer targetLevel // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 231
+    if (logEnable) log.info "Device ${device.displayName}: received setSpeed(${params.speed}) request from child ${originatingDevice.displayName}" // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 231
 
-	if (params.speed == "on") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 233
-	{ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 234
-		currentLevel = currentLevel ?: 100 // If it was a a level of 0, turn to 100%. Level should never be 0 -- except it might be 0 or null on first startup! // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 235
+	String currentOnState = originatingDevice.currentValue("switch") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 233
+	Integer currentLevel = originatingDevice.currentValue("level") // Null if attribute isn't supported. // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 234
+	Integer targetLevel // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 235
 
-		targetDevices.each{ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 237
-			it.sendEvent(name: "switch", value: "on", descriptionText: "Fan turned on", type: "digital") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 238
-			it.sendEvent(name: "level", value: currentLevel, descriptionText: "Fan level set", unit:"%", type: "digital") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 239
-			it.sendEvent(name: "speed", value: levelToSpeed(currentLevel), descriptionText: "Fan speed set", type: "digital") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 240
-		} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 241
-		sendZwaveValue(value: currentLevel, duration: 0, ep: ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 242
+	if (params.speed == "on") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 237
+	{ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 238
+		currentLevel = currentLevel ?: 100 // If it was a a level of 0, turn to 100%. Level should never be 0 -- except it might be 0 or null on first startup! // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 239
 
-	} else if (params.speed == "off") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 244
-	{  // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 245
-		targetDevices.each{ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 246
-			it.sendEvent(name: "switch", value: "off", descriptionText: "Fan switched off", type: "digital") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 247
-			it.sendEvent(name: "speed", value: "off", descriptionText: "Fan speed set", type: "digital") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 248
-		}			 // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 249
+		targetDevices.each{ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 241
+			it.sendEvent(name: "switch", value: "on", descriptionText: "Fan turned on", type: "digital") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 242
+			it.sendEvent(name: "level", value: currentLevel, descriptionText: "Fan level set", unit:"%", type: "digital") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 243
+			it.sendEvent(name: "speed", value: levelToSpeed(currentLevel), descriptionText: "Fan speed set", type: "digital") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 244
+		} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 245
+		sendZwaveValue(value: currentLevel, duration: 0, ep: ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 246
 
-		sendZwaveValue(value: 0, duration: 0, ep: ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 251
+	} else if (params.speed == "off") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 248
+	{  // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 249
+		targetDevices.each{ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 250
+			it.sendEvent(name: "switch", value: "off", descriptionText: "Fan switched off", type: "digital") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 251
+			it.sendEvent(name: "speed", value: "off", descriptionText: "Fan speed set", type: "digital") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 252
+		}			 // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 253
 
-	} else { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 253
-		targetLevel = (params.level as Integer) ?: speedToLevel(params.speed) ?: currentLevel // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 254
-		targetDevices.each{ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 255
-			it.sendEvent(name: "switch", value: "on", descriptionText: "Fan turned on", type: "digital") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 256
-			it.sendEvent(name: "speed", value: params.speed, descriptionText: "Fan speed set", type: "digital") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 257
-			it.sendEvent(name: "level", value: targetLevel, descriptionText: "Fan level set", unit:"%", type: "digital") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 258
-		} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 259
-		sendZwaveValue(value: targetLevel, duration: 0, ep: ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 260
-	} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 261
-} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 262
+		sendZwaveValue(value: 0, duration: 0, ep: ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 255
+
+	} else { // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 257
+		targetLevel = (params.level as Integer) ?: speedToLevel(params.speed) ?: currentLevel // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 258
+		targetDevices.each{ // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 259
+			it.sendEvent(name: "switch", value: "on", descriptionText: "Fan turned on", type: "digital") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 260
+			it.sendEvent(name: "speed", value: params.speed, descriptionText: "Fan speed set", type: "digital") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 261
+			it.sendEvent(name: "level", value: targetLevel, descriptionText: "Fan level set", unit:"%", type: "digital") // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 262
+		} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 263
+		sendZwaveValue(value: targetLevel, duration: 0, ep: ep) // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 264
+	} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 265
+} // library marker zwaveTools.binaryAndMultilevelDeviceTools, line 266
 
 // ~~~~~ end include (68) zwaveTools.binaryAndMultilevelDeviceTools ~~~~~
 
