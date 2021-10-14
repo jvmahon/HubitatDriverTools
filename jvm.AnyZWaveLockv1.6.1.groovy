@@ -18,42 +18,14 @@ Integer getS2MaxRetries() { return 5 }
 #include zwaveTools.openSmarthouseTools
 #include zwaveTools.childDeviceTools
 #include zwaveTools.parameterManagementTools
+#include zwaveTools.lockTools
 /////////////////
 
 
 metadata {
-	definition (name: "Any Z-Wave Universal Parent Driver v1.6.1",namespace: "jvm", author: "jvm", singleThreaded:false) {
+	definition (name: "Any Z-Wave Lock v1.6.1",namespace: "jvm", author: "jvm", singleThreaded:false) {
 		capability "Initialize"
 		capability "Refresh"
-	
-	// Uncomment capabilities that you want to expose in the parent.
-	// Otherwise, all capabilities / attributes are by adding child devices.
-        // capability "Actuator"
-		// capability "Switch"
-		// capability "SwitchLevel"		
-
-		capability "PushableButton"
-		capability "HoldableButton"
-		capability "ReleasableButton"
-		capability "DoubleTapableButton"	
-		attribute "multiTapButton", "number"
-        // capability "Sensor"				
-        // capability "MotionSensor"
-        // capability "TamperAlert"
-		// capability "WaterSensor"
-		// capability "ContactSensor"
-		// capability "ShockSensor"		// Use this for glass breakage!
-		// capability "IllumanceMeasurement"
-		// capability "LiquidFlowRate"
-		// attribute "carbonDioxideDetected"
-		
-
-		
-		// capability "Battery"
-
-		// capability "Consumable" 		// For smoke, CO, CO2 alarms that report their end-of-life
-		// capability "FilterStatus" 	// For water filters that report status of filter
-		
 
 		command "identify" // implements the Z-Wave Plus identify function which can flash device indicators.
 		command "resetDriver" // deletes the stored state information
@@ -62,9 +34,7 @@ metadata {
                                       [name:"componentDriverName*",type:"ENUM", constraints:(getDriverChoices()) ], 
                                       [name:"Endpoint",type:"NUMBER", description:"Endpoint Number, blank or 0 = root" ] ]
 
-  
-        command "multiTap", [[name:"button",type:"NUMBER", description:"Button Number", constraints:["NUMBER"]],
-		 			[name:"taps",type:"NUMBER", description:"Tap count", constraints:["NUMBER"]]]								
+							
 		command "setParameter",[[name:"parameterNumber",type:"NUMBER", description:"Parameter Number", constraints:["NUMBER"]],
 					[name:"value",type:"NUMBER", description:"Parameter Value", constraints:["NUMBER"]]
 					]	
@@ -170,7 +140,7 @@ void initialize()
         
         if (createdRecord) {
 		    state.deviceRecord = createdRecord
-		    updateDataValue("deviceModel", createdRecord?.fingerprints?.name)
+		    updateDataValue("deviceModel", createdRecord?.fingerprints[0]?.name)
             dataRecordByProductType.putAll(reparseDeviceData(createdRecord))
         }
 	}
@@ -190,11 +160,9 @@ void initialize()
 	
 	if (txtEnable) log.info "Device ${device.displayName}: Refreshing device data."
 	refresh()  
-    runIn(5, versionInfoTools_refreshVersionInfo)
+    versionInfoTools_refreshVersionInfo()
 	
 	if (txtEnable) log.info "Device ${device.displayName}: Done Initializing."
-    
-   // schedule('0 */10 * ? * * *', refresh)
 
 }
 

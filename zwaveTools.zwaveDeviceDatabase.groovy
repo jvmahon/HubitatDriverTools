@@ -332,5 +332,30 @@ Map getThisDeviceDatabaseRecord() {
 			// 22:[name:'22', title:'(22) Z-Wave Ramp Rate for Dimmer', size:1, type:'enum', options:[0:'Match #13', 1:'Set through Command Class']], 
 			23:[name:'23', title:'(23) Default Brightness Level ON for Dimmer', size:1, type:'number', range:"0..99"]	
 		]
-	]	
+	],
+	[
+		formatVersion:1, 
+		fingerprints:[
+				[deviceType:1, name:"Allegion: BE469ZP", deviceId:1129, manufacturer:59]
+				],
+		classVersions:[99:1, 34:1, 78:1, 89:1, 152:1, 0:1, 122:1, 133:2, 112:1, 134:2, 113:8, 114:1, 115:1, 138:1, 90:1, 128:1, 94:1, 32:1, 98:1], 
+		endpoints:[	0:[	notificationsSupported:[6:[1, 2, 5, 6, 9, 11], 7:[2]],
+						children:[[childName:"Schlage BE469ZP Lock", namespace:"jvm", type:"Generic Component Schlage BE469ZP Lock"]], 
+						classes:[0, 32, 34, 78, 89, 90, 94, 98, 99, 112, 113, 114, 115, 122, 128, 133, 134, 138, 152]
+						]
+					],
+		deviceInputs: [
+			3:[size:1, name:"3", description:"Keypad beeper to be turned ON or OFF" , options:[0:"Beeper Disabled", 255:"Beeper Enabled"], title:"(3) Beeper", type:"enum"], 
+			4:[size:1, name:"4", title:"(4) Vacation Mode", options:[0:"Disable Vacation Mode", 255:"Enable Vacation Mode"], type:"enum"],
+			5:[size:1, name:"5", description:"Controls button push for throwing the deadbolt." , options:[0:"Disable Lock & Leave", 255:"Enable Lock & Leave"], title:"(5) Lock and Leave Mode", type:"enum"], 
+			7:[size:1, name:"7", options:[0:"Alarm Off", 1:"Alert", 2:"Tamper", 3:"Forced Entry"], description:"Lock Specific Alarm Mode", title:"(7) Alarm Mode", type:"enum"], 
+			8:[size:1, name:"8", options:[1:"Most Sensitive", 2:"More Sensitive", 3:"Medium Sensitivity", 4:"Less Sensitive", 5:"Least Sensitive"], description:"Lock Specific Alarm Alert Sensitivity", title:"(8) Alarm Alert Sensitivity", type:"enum"], 
+			9:[size:1, name:"9", options:[1:"Most Sensitive", 2:"More Sensitive", 3:"Medium Sensitivity", 4:"Less Sensitive", 5:"Least Sensitive"], description:"Lock Specific Alarm Tamper Sensitivity", title:"(9) Alarm Tamper Sensitivity", type:"enum"], 
+			10:[size:1, name:"10", options:[1:"Most Sensitive", 2:"More Sensitive", 3:"Medium Sensitivity", 4:"Less Sensitive", 5:"Least Sensitive"], description:"Lock Specific Alarm Kick Sensitivity", title:"(10) Alarm Kick Sensitivity", type:"enum"]], 
+
+			11:[size:1, name:"11", description:"Lock Specific Alarm Disable Local Controls", options:[0:"Disable Local Control", 255:"Enable Local Control"], title:"(11) Alarm Disable Local Controls", type:"enum"], 
+
+			15:[size:1, name:"15", description:"Automatically throws the deadbolt 30 after seconds", options:[0:"Disable Auto Lock", 255:"Enable Auto Lock"], title:"(15) Auto Lock", type:"enum"], 
+			16:[size:1, name:"16", description:"Required length of all User Codes", options:[4:"4", 5:"5", 6:"6", 7:"7", 8:"8"], title:"(16) User Code PIN Length", type:"enum"]
+	], 
 ]

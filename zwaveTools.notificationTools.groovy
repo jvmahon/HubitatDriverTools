@@ -65,10 +65,11 @@ List<Integer> getNotificationTypesList(def cmd) {
 	if (cmd.lightSensor)		notificationTypes += 20 // Light Sensor
 	if (cmd.waterQualityMonitoring)		notificationTypes += 21 // Water Quality
 	if (cmd.homeMonitoring)		notificationTypes += 22 // Home Monitoring
+	return notificationTypes
 }
 
 void zwaveEvent(hubitat.zwave.commands.notificationv8.NotificationSupportedReport report, Integer ep = null )
-{ 
+{
 	getNotificationTypesList(report).each{it -> 
 			basicZwaveSend(zwave.notificationV8.eventSupportedGet(notificationType:(Integer) it), ep)}
 }
@@ -172,7 +173,9 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 				4:[name:"lock" , value:"unlocked", descriptionText:"RF unlock operation"], 
 				5:[name:"lock" , value:"locked", descriptionText:"Keypad lock operation"], 
 				6:[name:"lock" , value:"unlocked", descriptionText:"Keypad unlock operation"], 
-				11:[name:"lock" , value:"unknown", descriptionText:"Lock jammed"], 				
+				9:[name:"lock" , value:"locked", descriptionText:"Auto lock locked operation"], 
+				10:[name:"lock" , value:"unknown", descriptionText:"Auto lock not fully locked operation"],
+				11:[name:"lock" , value:"unknown", descriptionText:"Lock jammed"],
 				254:[name:"lock" , value:"unknown", descriptionText:"Lock in unknown state"]
 				],
 			0x07:[ // Home Security
@@ -203,6 +206,8 @@ Map getFormattedZWaveNotificationEvent(def cmd)
 					5:[name:"powerSource" , value:"unknown", descriptionText:"Voltage drop/drift cleared"],
 					],
 				1:[name:"powerSource" , value:"unknown", descriptionText:"Power applied"],
+				10:[name:"powerSource" , value:"battery", descriptionText:"Replace battery soon"],
+				11:[name:"powerSource" , value:"battery", descriptionText:"Replace battery now"],
 				],
 			0x09:[ // System
 				0:[ // These events "clear" a sensor

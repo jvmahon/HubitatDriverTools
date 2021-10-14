@@ -38,10 +38,10 @@ void binaryAndMultiLevelDeviceTools_refresh() {
 void sendZwaveValue(Map params = [value: null , duration: null , ep: null ] )
 {
 	Integer newValue = Math.max(Math.min(params.value, 99),0)
-	List<Integer> supportedClasses = getThisEndpointClasses(params.ep ?: 0)
+	List<Integer> supportedClasses = getThisEndpointClasses(params.ep ?:0)
 
 	if (supportedClasses.contains(0x26)) { // Multilevel  type device
-		if (! params.duration.is( null) ) advancedZwaveSend(zwave.switchMultilevelV4.switchMultilevelSet(value: newValue, dimmingDuration:params.duration), params.ep)	
+		if (! params.duration.is( null ) ) advancedZwaveSend(zwave.switchMultilevelV4.switchMultilevelSet(value: newValue, dimmingDuration:params.duration), params.ep)	
 			else advancedZwaveSend(zwave.switchMultilevelV1.switchMultilevelSet(value: newValue), params.ep)
 	} else if (supportedClasses.contains(0x25)) { // Switch Binary Type device
 		advancedZwaveSend(zwave.switchBinaryV1.switchBinarySet(switchValue: newValue ), params.ep)
@@ -112,7 +112,7 @@ void processSwitchReport(cmd, ep)
 
 void componentOn(com.hubitat.app.DeviceWrapper cd){ on(cd:cd) }
 
-void on(Map inputs = [:])
+void on(Map inputs = [:] )
 {
 	Map params = [cd: null , duration: null , level: null ] << inputs
 	Integer ep = getChildEndpointNumber(params.cd)
@@ -136,11 +136,9 @@ void on(Map inputs = [:])
 
 void componentOff(com.hubitat.app.DeviceWrapper cd){ 	off(cd:cd) }
 
-void off(Map inputs = [: ]) {
-	Map params = [cd: null , duration: null ]	<< inputs
-
+void off(Map inputs = [:]) {
+	Map params = [cd: null , duration: null ] << inputs
 	Integer ep = getChildEndpointNumber(params.cd)
-	
 	sendEventToEndpoints(event:[name: "switch", value: "off", descriptionText: "Device turned off", type: "digital"], ep:ep)
 	sendZwaveValue(value: 0, duration: params.duration, ep: ep)
 }

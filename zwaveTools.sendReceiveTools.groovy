@@ -41,7 +41,6 @@ Map getDefaultParseMap () {
 // create userDefinedParseFilter to override
 void parse(String description) {
 		hubitat.zwave.Command cmd = zwave.parse(description, (userParseMap ?: defaultParseMap))
-		if (logEnable) log.debug "Device ${device.displayName}: For parse string ${description} parsed the command ${cmd}"
 		if (cmd) { zwaveEvent(cmd) }
 }
 
@@ -155,8 +154,7 @@ void advancedZwaveSend(Map inputs = [:]) {
 									"7601", // Lock V1
 									"3305", // Switch Color Set									
 									]
-	if (userDefinedSupervisionList) superviseThese += userDefinedSupervisionList	
-	if (logEnable) log.debug "In advancedZwaveSend, received parameters ${params}, sending command ${cmd}"
+	if (userDefinedSupervisionList) superviseThese += userDefinedSupervisionList								
 	if (superviseThese.contains(params.cmd.CMD)) {
 		sendSupervised(params)
 	} else {
@@ -232,7 +230,7 @@ void zwaveEvent(hubitat.zwave.commands.supervisionv1.SupervisionReport cmd, Inte
 {
 	ConcurrentHashMap whatThisDeviceSent = supervisionSentCommands?.get(device.getDeviceNetworkId() )
     
-	Map whatWasSent = whatThisDeviceSent.get((Integer) cmd.sessionID)
+	Map whatWasSent = whatThisDeviceSent?.get((Integer) cmd.sessionID)
 
     if (!whatWasSent) {
         log.warn "Device ${device.displayName}: Received SuperVision Report ${cmd} for endpoint ${ep},  but what was sent is null. May have been processed by a duplicate SuperVision Report. If this happens repeatedly, report issue at https://github.com/jvmahon/HubitatDriverTools/issues"
@@ -291,6 +289,3 @@ void supervisionCheck() {
 		}
 	}
 }
-
-
-

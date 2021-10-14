@@ -192,7 +192,7 @@ void initialize()
 	refresh()  
 	
 	if (txtEnable) log.info "Device ${device.displayName}: Done Initializing."
-
+    // schedule('0 */10 * ? * * *', refresh)
 }
 
 //////////// Get Inputs //////////////

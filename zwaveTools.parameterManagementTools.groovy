@@ -52,13 +52,17 @@ void processPendingChanges()
 		}
 }
 
-void setParameter(parameterNumber, value = null ) {
-	if (parameterNumber && ( ! value.is( null ) )) {
-		setParameter(parameterNumber:parameterNumber, value:value)
-	} else if (parameterNumber) {
+void getParameter(parameterNumber) {
 		advancedZwaveSend( zwave.configurationV1.configurationGet(parameterNumber: parameterNumber))
 		hubitat.zwave.Command report = myReportQueue("7006").poll(5, TimeUnit.SECONDS)
 		if (logEnable) log.debug "Device ${device.displayName}: Received a parameter configuration report: ${report}."
+}
+
+void setParameter(parameterNumber, value = null ) {
+	if (parameterNumber && value) {
+		setParameter(parameterNumber:parameterNumber, value:value)
+	} else if (parameterNumber) {
+		getParameter(parameterNumber)
 	}
 }
 
@@ -74,7 +78,9 @@ Boolean setParameter(Map params = [parameterNumber: null , value: null ] ){
 	
 	if (!PSize) {log.error "Device ${device.displayName}: Could not get parameter size in function setParameter. Defaulting to 1"; PSize = 1}
 
+	log.debug "Sending a parameter update for: scaledConfigurationValue:  ${params.value as BigInteger}, parameterNumber: ${params.parameterNumber}, size: ${PSize} "
 	advancedZwaveSend(zwave.configurationV1.configurationSet(scaledConfigurationValue: params.value as BigInteger, parameterNumber: params.parameterNumber, size: PSize))
+	
 	// The 'get' should not be supervised!
 	advancedZwaveSend( zwave.configurationV1.configurationGet(parameterNumber: params.parameterNumber))
 	
@@ -137,7 +143,7 @@ Map<Integer, BigInteger> getParameterValuesFromDevice()
 						myReportQueue("7006").poll(waitTime, TimeUnit.SECONDS)
 
 				} else {
-					if (logEnable) log.debug "Device ${device.displayName}: For parameter: ${k} previously retrieved a value of ${parameterValues.get(k as Integer)}."
+					// if (logEnable) log.debug "Device ${device.displayName}: For parameter: ${k} previously retrieved a value of ${parameterValues.get(k as Integer)}."
 				}
 			}
 		return parameterValues			
@@ -158,9 +164,12 @@ void zwaveEvent(hubitat.zwave.commands.configurationv2.ConfigurationReport  cmd)
 	pendingChangeMap.remove(cmd.parameterNumber as Integer)
 	
 	if (txtEnable) log.info "Device ${device.displayName}: updating parameter: ${cmd.parameterNumber} to ${newValue}."
-	device.updateSetting("${cmd.parameterNumber}", newValue as Integer)
+	device.updateSetting("${cmd.parameterNumber}", newValue)
 		
 	myReportQueue(cmd.CMD).offer( cmd )
+	
+	log.debug "sending the parse report to the child devices"
+	(childDevices + this).each{ it.parse([[name:"parameterUpdate", report:cmd]])}
 }
 
 //////////////////////////////////////////////////////////////////////
