@@ -86,9 +86,9 @@ Map getThisDeviceDatabaseRecord() {
 		deviceInputs:[
 			4:[ size:1,	category:"basic", name:"4", title:"(4) Orientation", description:"Control the on/off orientation of the rocker switch", options:[0:"Normal", 1:"Inverted"], type:"enum" ],
 
-			7:[ size:2,	category:"basic", name:"7", title:"(7) Remote Dimming Level Increment", range:"1..99", type:"number"],
+			7:[ size:1,	category:"basic", name:"7", title:"(7) Remote Dimming Level Increment", range:"1..99", type:"number"],
 			8:[ size:2,	category:"basic", name:"8", title:"(8) Remote Dimming Level Duration", description:"Time interval (in tens of ms) of each brightness level change when controlled locally", range:"0..255", type:"number" ],
-			9:[ size:2,	category:"basic", name:"9", title:"(9) Local Dimming Level Increment", range:"1..99", type:"number"],
+			9:[ size:1,	category:"basic", name:"9", title:"(9) Local Dimming Level Increment", range:"1..99", type:"number"],
 			10:[size:2, category:"basic", name:"10", title:"(10) Local Dimming Level Duration", description:"Time interval (in tens of ms) of each brightness level change when controlled locally", range:"0..255", type:"number"]
 		]
 	],

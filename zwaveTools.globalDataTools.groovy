@@ -30,7 +30,8 @@ ConcurrentHashMap getDataRecordByProductType()
 
 ConcurrentHashMap getDataRecordByNetworkId()
 {
-	return globalDataStorage.get(deviceNetworkId, new ConcurrentHashMap<String,ConcurrentHashMap>())
+    String netId = device.getDeviceNetworkId()
+	return globalDataStorage.get(netId, new ConcurrentHashMap<String,ConcurrentHashMap>(16, 0.75, 1))
 }
 
 // Debugging Functions

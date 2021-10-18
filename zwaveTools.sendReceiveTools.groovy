@@ -40,8 +40,12 @@ Map getDefaultParseMap () {
 ////    Z-Wave Message Parsing   ////
 // create userDefinedParseFilter to override
 void parse(String description) {
+	try{
 		hubitat.zwave.Command cmd = zwave.parse(description, (userParseMap ?: defaultParseMap))
 		if (cmd) { zwaveEvent(cmd) }
+	} catch (Exception ex) {
+		log.error "Device ${device.displayName}: An Error occurred when attempting to parse ${description}. Error is: ${getExceptionmessageWithLine(ex)}"
+	}
 }
 
 
@@ -271,7 +275,7 @@ void zwaveEvent(hubitat.zwave.commands.supervisionv1.SupervisionReport cmd, Inte
 }
 
 void supervisionCheck() {
-    // re-attempt supervison once, else send without supervision
+    // re-attempt supervision once, else send without supervision
 	ConcurrentHashMap tryAgain = supervisionSentCommands?.get(device.getDeviceNetworkId())
 	tryAgain?.each{ thisSessionId, whatWasSent ->
 		
@@ -279,7 +283,7 @@ void supervisionCheck() {
 		if (whatWasSent.attempt <  retries ) {
 			whatWasSent.attempt += 1
 			hubitat.zwave.Command  supervisedCommand = zwave.supervisionV1.supervisionGet(sessionID: thisSessionId, statusUpdates: true ).encapsulate(whatWasSent.cmd)
-			if (logEnable) log.debug "Device ${device.displayName}: Reattempting command ${whatWasSent}."
+			log.info "Device ${device.displayName}: Supervised command failed to respond. Reattempting command ${whatWasSent}."
 
 			basicZwaveSend(supervisedCommand, whatWasSent.ep)	
 		} else {

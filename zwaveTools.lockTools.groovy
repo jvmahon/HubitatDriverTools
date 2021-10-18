@@ -30,7 +30,7 @@ void zwaveEvent(hubitat.zwave.commands.usercodev1.UsersNumberReport cmd) {
 }
 
 
-void lockrefresh() {
+void locktools_refresh( ep = null ) {
 	advancedZwaveSend(zwave.doorLockV1.doorLockOperationGet())
 }
 
