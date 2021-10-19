@@ -133,7 +133,7 @@ void initialize()
 	} else if ( state.deviceRecord.is( null ) && getDataRecordByProductType().deviceRecord ) {
 		// Data record doesn't exist in state, but it is in the concurrentHashMap - So store in state rather than re-retrieve
 		state.deviceRecord = dataRecordByProductType.deviceRecord
-		updateDataValue("deviceModel", state.deviceRecord?.fingerprints?.name)
+		updateDataValue("deviceModel", state.deviceRecord?.fingerprints[0]?.name)
 	} else if ( state.deviceRecord.is( null )) {
 		// Data record doesn't exist - get it and store in the global data record
 		Map createdRecord = openSmarthouseCreateDeviceDataRecord() 
