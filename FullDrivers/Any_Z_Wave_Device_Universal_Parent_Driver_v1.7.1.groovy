@@ -19,7 +19,7 @@ Integer getS2MaxRetries() { return 5 }
 
 
 metadata {
-	definition (name: "Any Z-Wave Device Universal Parent Driver v1.7.0",namespace: "jvm", author: "jvm", singleThreaded:false) {
+	definition (name: "Any Z-Wave Device Universal Parent Driver v1.7.2",namespace: "jvm", author: "jvm", singleThreaded:false) {
 		capability "Initialize"
 		capability "Refresh"
 	
@@ -1352,102 +1352,108 @@ Map getFormattedZWaveNotificationEvent(def cmd) // library marker zwaveTools.not
 				9:[name:"lock" , value:"locked", descriptionText:"Auto lock locked operation"],  // library marker zwaveTools.notificationTools, line 176
 				10:[name:"lock" , value:"unknown", descriptionText:"Auto lock not fully locked operation"], // library marker zwaveTools.notificationTools, line 177
 				11:[name:"lock" , value:"unknown", descriptionText:"Lock jammed"], // library marker zwaveTools.notificationTools, line 178
-				254:[name:"lock" , value:"unknown", descriptionText:"Lock in unknown state"] // library marker zwaveTools.notificationTools, line 179
-				], // library marker zwaveTools.notificationTools, line 180
-			0x07:[ // Home Security // library marker zwaveTools.notificationTools, line 181
-				0:[	 // These events "clear" a sensor.	 // library marker zwaveTools.notificationTools, line 182
-						1:[name:"contact" , value:"closed", descriptionText:"Contact sensor, closed (location provided)"],  // library marker zwaveTools.notificationTools, line 183
-						2:[name:"contact" , value:"closed", descriptionText:"Contact sensor, closed"], 					 // library marker zwaveTools.notificationTools, line 184
-						3:[name:"tamper" , value:"clear", descriptionText:"Tamper state cleared."], // library marker zwaveTools.notificationTools, line 185
-						4:[name:"tamper" , value:"clear", descriptionText:"Tamper state cleared."], // library marker zwaveTools.notificationTools, line 186
-						5:[name:"shock" , value:"clear", descriptionText:"Glass Breakage Not Detected (location provided)"], // glass Breakage  attribute! // library marker zwaveTools.notificationTools, line 187
-						6:[name:"shock" , value:"clear", descriptionText:"Glass Breakage Not Detected"], 	 // glass Breakage attribute!					 // library marker zwaveTools.notificationTools, line 188
-						7:[name:"motion" , value:"inactive", descriptionText:"Motion Inactive."], // library marker zwaveTools.notificationTools, line 189
-						8:[name:"motion" , value:"inactive", descriptionText:"Motion Inactive."], // library marker zwaveTools.notificationTools, line 190
-						9:[name:"tamper" , value:"clear", descriptionText:"Tamper state cleared."], // library marker zwaveTools.notificationTools, line 191
+				12:[name:"lockStatus" , value:"All codes deleted", descriptionText:"All user codes deleted."], // library marker zwaveTools.notificationTools, line 179
+				13:[name:"lockStatus" , value:"Code deleted", descriptionText:"Single user code deleted."], // library marker zwaveTools.notificationTools, line 180
+				14:[name:"lockStatus" , value:"Code added", descriptionText:"New user code added."], // library marker zwaveTools.notificationTools, line 181
+				15:[name:"lockStatus" , value:"Duplicate code", descriptionText:"User code not added. Duplicate."], // library marker zwaveTools.notificationTools, line 182
+				22:[name:"contact" , value:"open", descriptionText:"Door/Window open"], 	 // library marker zwaveTools.notificationTools, line 183
+				23:[name:"contact" , value:"closed", descriptionText:"Door/Window closed"],  // library marker zwaveTools.notificationTools, line 184
+				254:[name:"lock" , value:"unknown", descriptionText:"Lock in unknown state"] // library marker zwaveTools.notificationTools, line 185
+				], // library marker zwaveTools.notificationTools, line 186
+			0x07:[ // Home Security // library marker zwaveTools.notificationTools, line 187
+				0:[	 // These events "clear" a sensor.	 // library marker zwaveTools.notificationTools, line 188
+						1:[name:"contact" , value:"closed", descriptionText:"Contact sensor, closed (location provided)"],  // library marker zwaveTools.notificationTools, line 189
+						2:[name:"contact" , value:"closed", descriptionText:"Contact sensor, closed"], 					 // library marker zwaveTools.notificationTools, line 190
+						3:[name:"tamper" , value:"clear", descriptionText:"Tamper state cleared."], // library marker zwaveTools.notificationTools, line 191
+						4:[name:"tamper" , value:"clear", descriptionText:"Tamper state cleared."], // library marker zwaveTools.notificationTools, line 192
+						5:[name:"shock" , value:"clear", descriptionText:"Glass Breakage Not Detected (location provided)"], // glass Breakage  attribute! // library marker zwaveTools.notificationTools, line 193
+						6:[name:"shock" , value:"clear", descriptionText:"Glass Breakage Not Detected"], 	 // glass Breakage attribute!					 // library marker zwaveTools.notificationTools, line 194
+						7:[name:"motion" , value:"inactive", descriptionText:"Motion Inactive."], // library marker zwaveTools.notificationTools, line 195
+						8:[name:"motion" , value:"inactive", descriptionText:"Motion Inactive."], // library marker zwaveTools.notificationTools, line 196
+						9:[name:"tamper" , value:"clear", descriptionText:"Tamper state cleared."], // library marker zwaveTools.notificationTools, line 197
 
-					],  // library marker zwaveTools.notificationTools, line 193
-				1:[name:"contact" , value:"open", descriptionText:"Contact sensor, open (location provided)"], 	 // library marker zwaveTools.notificationTools, line 194
-				2:[name:"contact" , value:"open", descriptionText:"Contact sensor, open"], 					 // library marker zwaveTools.notificationTools, line 195
-				3:[name:"tamper" , value:"detected", descriptionText:"Tampering, device cover removed"],  // library marker zwaveTools.notificationTools, line 196
-				4:[name:"tamper" , value:"detected", descriptionText:"Tampering, invalid code."],  // library marker zwaveTools.notificationTools, line 197
-				5:[name:"shock" , value:"detected", descriptionText:"Glass Breakage Detected (location provided)"],  // library marker zwaveTools.notificationTools, line 198
-				6:[name:"shock" , value:"detected", descriptionText:"Glass Breakage Detected"], 				 // library marker zwaveTools.notificationTools, line 199
-				7:[name:"motion" , value:"active", descriptionText:"Motion detected (location provided)."], // library marker zwaveTools.notificationTools, line 200
-				8:[name:"motion" , value:"active", descriptionText:"Motion detected."], // library marker zwaveTools.notificationTools, line 201
-				9:[name:"tamper" , value:"detected", descriptionText:"Tampering, device moved"] // library marker zwaveTools.notificationTools, line 202
-				], // library marker zwaveTools.notificationTools, line 203
-			0x08:[ // Power Management // library marker zwaveTools.notificationTools, line 204
-				0:[ // These events "clear" a sensor // library marker zwaveTools.notificationTools, line 205
-					5:[name:"powerSource" , value:"unknown", descriptionText:"Voltage drop/drift cleared"], // library marker zwaveTools.notificationTools, line 206
-					], // library marker zwaveTools.notificationTools, line 207
-				1:[name:"powerSource" , value:"unknown", descriptionText:"Power applied"], // library marker zwaveTools.notificationTools, line 208
-				10:[name:"powerSource" , value:"battery", descriptionText:"Replace battery soon"], // library marker zwaveTools.notificationTools, line 209
-				11:[name:"powerSource" , value:"battery", descriptionText:"Replace battery now"], // library marker zwaveTools.notificationTools, line 210
-				], // library marker zwaveTools.notificationTools, line 211
-			0x09:[ // System // library marker zwaveTools.notificationTools, line 212
-				0:[ // These events "clear" a sensor // library marker zwaveTools.notificationTools, line 213
-					4:[name:"softwareFailure" , value:"cleared", descriptionText:"System Software Report - Startup Cleared"], // library marker zwaveTools.notificationTools, line 214
-					5:[name:"heartbeat" , value:currentDate, descriptionText:"Last Heartbeat"], // library marker zwaveTools.notificationTools, line 215
-					], // library marker zwaveTools.notificationTools, line 216
-				4:[name:"softwareFailure" , value:(cmd.notificationStatus), descriptionText:"System Software Failure Report - Proprietary Code"], // library marker zwaveTools.notificationTools, line 217
-				5:[name:"heartbeat" , value:currentDate, descriptionText:"Last Heartbeat"] // library marker zwaveTools.notificationTools, line 218
-				], 				 // library marker zwaveTools.notificationTools, line 219
-			0x12:[ //  Gas Alarm // library marker zwaveTools.notificationTools, line 220
-				0:[	 // These events "clear" a sensor.	 // library marker zwaveTools.notificationTools, line 221
-						1:[name:"naturalGas" , value:"clear", descriptionText:"Combustible gas (cleared) (location provided)"], 	 // library marker zwaveTools.notificationTools, line 222
-						2:[name:"naturalGas" , value:"clear", descriptionText:"Combustible gas  (cleared) "],  // library marker zwaveTools.notificationTools, line 223
-						5:[name:"naturalGas" , value:"clear", descriptionText:"Gas detector test completed."], 	 // library marker zwaveTools.notificationTools, line 224
-						6:[name:"consumableStatus" , value:"good", descriptionText:"Gas detector (good)"], // library marker zwaveTools.notificationTools, line 225
-					],  // library marker zwaveTools.notificationTools, line 226
-				1:[name:"naturalGas" , value:"detected", descriptionText:"Combustible gas detected (location provided)"], 	 // library marker zwaveTools.notificationTools, line 227
-				2:[name:"naturalGas" , value:"detected", descriptionText:"Combustible gas detected"],  // library marker zwaveTools.notificationTools, line 228
-				5:[name:"naturalGas" , value:"tested", descriptionText:"Gas detector test"], 	 // library marker zwaveTools.notificationTools, line 229
-				6:[name:"consumableStatus" , value:"replace", descriptionText:"Gas detector, replacement required"], // library marker zwaveTools.notificationTools, line 230
-				],				 // library marker zwaveTools.notificationTools, line 231
-			0x0E:[ // Siren // library marker zwaveTools.notificationTools, line 232
-				0:[ // library marker zwaveTools.notificationTools, line 233
-						1:[name:"alarm" , value:"off", descriptionText:"Alarm Siren Off."] // library marker zwaveTools.notificationTools, line 234
-					],  // library marker zwaveTools.notificationTools, line 235
-				1:[name:"alarm" , value:"siren", descriptionText:"Alarm Siren On."] // library marker zwaveTools.notificationTools, line 236
-				],  // library marker zwaveTools.notificationTools, line 237
-			0x0F:[ // Water Valve // library marker zwaveTools.notificationTools, line 238
-				0:[name:"valve" , value:( (cmd.event > 0 ) ? "open" : "closed"), descriptionText:"Valve Operation."],  // library marker zwaveTools.notificationTools, line 239
-				1:[name:"valve" , value:( (cmd.event > 0 ) ? "open" : "closed"), descriptionText:"Master Valve Operation."]  // library marker zwaveTools.notificationTools, line 240
-				],  // library marker zwaveTools.notificationTools, line 241
+					],  // library marker zwaveTools.notificationTools, line 199
+				1:[name:"contact" , value:"open", descriptionText:"Contact sensor, open (location provided)"], 	 // library marker zwaveTools.notificationTools, line 200
+				2:[name:"contact" , value:"open", descriptionText:"Contact sensor, open"], 					 // library marker zwaveTools.notificationTools, line 201
+				3:[name:"tamper" , value:"detected", descriptionText:"Tampering, device cover removed"],  // library marker zwaveTools.notificationTools, line 202
+				4:[name:"tamper" , value:"detected", descriptionText:"Tampering, invalid code."],  // library marker zwaveTools.notificationTools, line 203
+				5:[name:"shock" , value:"detected", descriptionText:"Glass Breakage Detected (location provided)"],  // library marker zwaveTools.notificationTools, line 204
+				6:[name:"shock" , value:"detected", descriptionText:"Glass Breakage Detected"], 				 // library marker zwaveTools.notificationTools, line 205
+				7:[name:"motion" , value:"active", descriptionText:"Motion detected (location provided)."], // library marker zwaveTools.notificationTools, line 206
+				8:[name:"motion" , value:"active", descriptionText:"Motion detected."], // library marker zwaveTools.notificationTools, line 207
+				9:[name:"tamper" , value:"detected", descriptionText:"Tampering, device moved"] // library marker zwaveTools.notificationTools, line 208
+				], // library marker zwaveTools.notificationTools, line 209
+			0x08:[ // Power Management // library marker zwaveTools.notificationTools, line 210
+				0:[ // These events "clear" a sensor // library marker zwaveTools.notificationTools, line 211
+					5:[name:"powerSource" , value:"unknown", descriptionText:"Voltage drop/drift cleared"], // library marker zwaveTools.notificationTools, line 212
+					], // library marker zwaveTools.notificationTools, line 213
+				1:[name:"powerSource" , value:"unknown", descriptionText:"Power applied"], // library marker zwaveTools.notificationTools, line 214
+				10:[name:"powerSource" , value:"battery", descriptionText:"Replace battery soon"], // library marker zwaveTools.notificationTools, line 215
+				11:[name:"powerSource" , value:"battery", descriptionText:"Replace battery now"], // library marker zwaveTools.notificationTools, line 216
+				], // library marker zwaveTools.notificationTools, line 217
+			0x09:[ // System // library marker zwaveTools.notificationTools, line 218
+				0:[ // These events "clear" a sensor // library marker zwaveTools.notificationTools, line 219
+					4:[name:"softwareFailure" , value:"cleared", descriptionText:"System Software Report - Startup Cleared"], // library marker zwaveTools.notificationTools, line 220
+					5:[name:"heartbeat" , value:currentDate, descriptionText:"Last Heartbeat"], // library marker zwaveTools.notificationTools, line 221
+					], // library marker zwaveTools.notificationTools, line 222
+				4:[name:"softwareFailure" , value:(cmd.notificationStatus), descriptionText:"System Software Failure Report - Proprietary Code"], // library marker zwaveTools.notificationTools, line 223
+				5:[name:"heartbeat" , value:currentDate, descriptionText:"Last Heartbeat"] // library marker zwaveTools.notificationTools, line 224
+				], 				 // library marker zwaveTools.notificationTools, line 225
+			0x12:[ //  Gas Alarm // library marker zwaveTools.notificationTools, line 226
+				0:[	 // These events "clear" a sensor.	 // library marker zwaveTools.notificationTools, line 227
+						1:[name:"naturalGas" , value:"clear", descriptionText:"Combustible gas (cleared) (location provided)"], 	 // library marker zwaveTools.notificationTools, line 228
+						2:[name:"naturalGas" , value:"clear", descriptionText:"Combustible gas  (cleared) "],  // library marker zwaveTools.notificationTools, line 229
+						5:[name:"naturalGas" , value:"clear", descriptionText:"Gas detector test completed."], 	 // library marker zwaveTools.notificationTools, line 230
+						6:[name:"consumableStatus" , value:"good", descriptionText:"Gas detector (good)"], // library marker zwaveTools.notificationTools, line 231
+					],  // library marker zwaveTools.notificationTools, line 232
+				1:[name:"naturalGas" , value:"detected", descriptionText:"Combustible gas detected (location provided)"], 	 // library marker zwaveTools.notificationTools, line 233
+				2:[name:"naturalGas" , value:"detected", descriptionText:"Combustible gas detected"],  // library marker zwaveTools.notificationTools, line 234
+				5:[name:"naturalGas" , value:"tested", descriptionText:"Gas detector test"], 	 // library marker zwaveTools.notificationTools, line 235
+				6:[name:"consumableStatus" , value:"replace", descriptionText:"Gas detector, replacement required"], // library marker zwaveTools.notificationTools, line 236
+				],				 // library marker zwaveTools.notificationTools, line 237
+			0x0E:[ // Siren // library marker zwaveTools.notificationTools, line 238
+				0:[ // library marker zwaveTools.notificationTools, line 239
+						1:[name:"alarm" , value:"off", descriptionText:"Alarm Siren Off."] // library marker zwaveTools.notificationTools, line 240
+					],  // library marker zwaveTools.notificationTools, line 241
+				1:[name:"alarm" , value:"siren", descriptionText:"Alarm Siren On."] // library marker zwaveTools.notificationTools, line 242
+				],  // library marker zwaveTools.notificationTools, line 243
+			0x0F:[ // Water Valve // library marker zwaveTools.notificationTools, line 244
+				0:[name:"valve" , value:( (cmd.event > 0 ) ? "open" : "closed"), descriptionText:"Valve Operation."],  // library marker zwaveTools.notificationTools, line 245
+				1:[name:"valve" , value:( (cmd.event > 0 ) ? "open" : "closed"), descriptionText:"Master Valve Operation."]  // library marker zwaveTools.notificationTools, line 246
+				],  // library marker zwaveTools.notificationTools, line 247
 
-			0x16:[ // Home Monitoring // library marker zwaveTools.notificationTools, line 243
-				0:[ // library marker zwaveTools.notificationTools, line 244
-						1:[name:"presence" , value:"not present", descriptionText:"Home not occupied"], // library marker zwaveTools.notificationTools, line 245
-						2:[name:"presence" , value:"not present", descriptionText:"Home not occupied"] // library marker zwaveTools.notificationTools, line 246
-					],  // library marker zwaveTools.notificationTools, line 247
-				1:[name:"presence" , value:"present", descriptionText:"Home occupied (location provided)"],   // library marker zwaveTools.notificationTools, line 248
-				2:[name:"presence" , value:"present", descriptionText:"Home occupied"] // library marker zwaveTools.notificationTools, line 249
-				] // library marker zwaveTools.notificationTools, line 250
+			0x16:[ // Home Monitoring // library marker zwaveTools.notificationTools, line 249
+				0:[ // library marker zwaveTools.notificationTools, line 250
+						1:[name:"presence" , value:"not present", descriptionText:"Home not occupied"], // library marker zwaveTools.notificationTools, line 251
+						2:[name:"presence" , value:"not present", descriptionText:"Home not occupied"] // library marker zwaveTools.notificationTools, line 252
+					],  // library marker zwaveTools.notificationTools, line 253
+				1:[name:"presence" , value:"present", descriptionText:"Home occupied (location provided)"],   // library marker zwaveTools.notificationTools, line 254
+				2:[name:"presence" , value:"present", descriptionText:"Home occupied"] // library marker zwaveTools.notificationTools, line 255
+				] // library marker zwaveTools.notificationTools, line 256
 
-		].get((Integer) cmd.notificationType )?.get((Integer) cmd.event ) // library marker zwaveTools.notificationTools, line 252
+		].get((Integer) cmd.notificationType )?.get((Integer) cmd.event ) // library marker zwaveTools.notificationTools, line 258
 
-		if (! notificationEvent) return // library marker zwaveTools.notificationTools, line 254
+		if (! notificationEvent) return // library marker zwaveTools.notificationTools, line 260
 
-		if ((cmd.event == 0) && (cmd.eventParametersLength == 1)) { // This is for clearing events. // library marker zwaveTools.notificationTools, line 256
-				return notificationEvent.get( (Integer) cmd.eventParameter[0] ) // library marker zwaveTools.notificationTools, line 257
-		} // library marker zwaveTools.notificationTools, line 258
+		if ((cmd.event == 0) && (cmd.eventParametersLength == 1)) { // This is for clearing events. // library marker zwaveTools.notificationTools, line 262
+				return notificationEvent.get( (Integer) cmd.eventParameter[0] ) // library marker zwaveTools.notificationTools, line 263
+		} // library marker zwaveTools.notificationTools, line 264
 
-		if (cmd.eventParametersLength > 1) { // This is unexpected! None of the current notifications use this. // library marker zwaveTools.notificationTools, line 260
-			log.error "In function getZWaveNotificationEvent(), received command with eventParametersLength of unexpected size." // library marker zwaveTools.notificationTools, line 261
-			return null // library marker zwaveTools.notificationTools, line 262
-		}  // library marker zwaveTools.notificationTools, line 263
-		return notificationEvent // library marker zwaveTools.notificationTools, line 264
-} // library marker zwaveTools.notificationTools, line 265
+		if (cmd.eventParametersLength > 1) { // This is unexpected! None of the current notifications use this. // library marker zwaveTools.notificationTools, line 266
+			log.error "In function getZWaveNotificationEvent(), received command with eventParametersLength of unexpected size." // library marker zwaveTools.notificationTools, line 267
+			return null // library marker zwaveTools.notificationTools, line 268
+		}  // library marker zwaveTools.notificationTools, line 269
+		return notificationEvent // library marker zwaveTools.notificationTools, line 270
+} // library marker zwaveTools.notificationTools, line 271
 
-void zwaveEvent(hubitat.zwave.commands.notificationv8.NotificationReport cmd, Integer ep = null ) // library marker zwaveTools.notificationTools, line 267
-{ // library marker zwaveTools.notificationTools, line 268
-	Map thisEvent = getFormattedZWaveNotificationEvent(cmd) // library marker zwaveTools.notificationTools, line 269
-	if (thisEvent) { sendEventToEndpoints(event:thisEvent, ep:ep, alwaysSend:["heartbeat"])  // library marker zwaveTools.notificationTools, line 270
-	} else { // library marker zwaveTools.notificationTools, line 271
-		log.debug "Unhandled notification command report ${cmd}" // library marker zwaveTools.notificationTools, line 272
-	} // library marker zwaveTools.notificationTools, line 273
-} // library marker zwaveTools.notificationTools, line 274
+void zwaveEvent(hubitat.zwave.commands.notificationv8.NotificationReport cmd, Integer ep = null ) // library marker zwaveTools.notificationTools, line 273
+{ // library marker zwaveTools.notificationTools, line 274
+	Map thisEvent = getFormattedZWaveNotificationEvent(cmd) // library marker zwaveTools.notificationTools, line 275
+	if (thisEvent) { sendEventToEndpoints(event:thisEvent, ep:ep, alwaysSend:["heartbeat"])  // library marker zwaveTools.notificationTools, line 276
+	} else { // library marker zwaveTools.notificationTools, line 277
+		log.debug "Unhandled notification command report ${cmd}" // library marker zwaveTools.notificationTools, line 278
+	} // library marker zwaveTools.notificationTools, line 279
+} // library marker zwaveTools.notificationTools, line 280
 
 // ~~~~~ end include (33) zwaveTools.notificationTools ~~~~~
 
@@ -2556,7 +2562,7 @@ void showParameterStorageMap(){ // library marker zwaveTools.parameterGetSendToo
 } // library marker zwaveTools.parameterGetSendTools, line 36
 
 Map<Integer, Map> getAllParameterCharacteristics(){ // library marker zwaveTools.parameterGetSendTools, line 38
-	return getThisDeviceDatabaseRecord().deviceInputs // library marker zwaveTools.parameterGetSendTools, line 39
+	return getThisDeviceDatabaseRecord()?.deviceInputs // library marker zwaveTools.parameterGetSendTools, line 39
 } // library marker zwaveTools.parameterGetSendTools, line 40
 
 Map getInputs(){ // library marker zwaveTools.parameterGetSendTools, line 42
@@ -2684,7 +2690,7 @@ void clearSettings(){ // library marker zwaveTools.parameterGetSendTools, line 1
 // This is called within the updated() routine to update values! // library marker zwaveTools.parameterGetSendTools, line 164
 Boolean updateDeviceSettings(){ // library marker zwaveTools.parameterGetSendTools, line 165
 	Map rValue = getAllParameterCharacteristics()?.collectEntries{ k, v ->  // library marker zwaveTools.parameterGetSendTools, line 166
-		Integer thisSettingValue = (settings.get("${k}" as String)) as Integer // library marker zwaveTools.parameterGetSendTools, line 167
+		Integer thisSettingValue = (settings?.get("${k}" as String)) as Integer // library marker zwaveTools.parameterGetSendTools, line 167
 		Integer currentParameterValue = getParameterValue(parameterNumber:(k as Integer)) // library marker zwaveTools.parameterGetSendTools, line 168
 		log.debug "Attempting update of parameter ${k}: current value: ${currentParameterValue}, new value: ${thisSettingValue}." // library marker zwaveTools.parameterGetSendTools, line 169
 
@@ -2703,7 +2709,7 @@ Boolean updateDeviceSettings(){ // library marker zwaveTools.parameterGetSendToo
 		} // library marker zwaveTools.parameterGetSendTools, line 183
 	} // library marker zwaveTools.parameterGetSendTools, line 184
 	if (rValue != parameterStorageMap) log.warn "Mismatch between maps. rValue = ${rValue}, parameterStorageMap = ${parameterStorageMap}" // library marker zwaveTools.parameterGetSendTools, line 185
-	parameterStorageMap.each{ k, v -> device.updateSetting("${k}" as String, v as Integer)} // library marker zwaveTools.parameterGetSendTools, line 186
+	parameterStorageMap?.each{ k, v -> device.updateSetting("${k}" as String, v as Integer)} // library marker zwaveTools.parameterGetSendTools, line 186
 	log.debug "New Settings are: " + settings // library marker zwaveTools.parameterGetSendTools, line 187
 	return true // library marker zwaveTools.parameterGetSendTools, line 188
 } // library marker zwaveTools.parameterGetSendTools, line 189
