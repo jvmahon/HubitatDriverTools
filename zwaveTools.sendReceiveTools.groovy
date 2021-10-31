@@ -28,7 +28,7 @@ Map getDefaultParseMap () {
 		0x63:1,	// User Code
 		0x6C:1,	// Supervision
 		0x71:8, // Notification
-		0x72: 1, // Manufacturer Specific
+		0x72: 2, // Manufacturer Specific
 		0x80:3, // Battery
 		0x86:3,	// Version
 		0x98:1,	// Security
@@ -40,12 +40,17 @@ Map getDefaultParseMap () {
 ////    Z-Wave Message Parsing   ////
 // create userDefinedParseFilter to override
 void parse(String description) {
+    	hubitat.zwave.Command cmd = zwave.parse(description, (userParseMap ?: defaultParseMap))
+		if (cmd) { zwaveEvent(cmd) }
+    /*
+    if (logEnable) log.debug "Parsing string ${description}"
 	try{
 		hubitat.zwave.Command cmd = zwave.parse(description, (userParseMap ?: defaultParseMap))
 		if (cmd) { zwaveEvent(cmd) }
 	} catch (Exception ex) {
-		log.error "Device ${device.displayName}: An Error occurred when attempting to parse ${description}. Error is: ${getExceptionmessageWithLine(ex)}"
+		log.error "Device ${device.displayName}: An Error occurred when attempting to parse ${description} using parse map ${(userParseMap ?: defaultParseMap)}. Error is: ${ex}"
 	}
+    */
 }
 
 

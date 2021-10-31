@@ -13,7 +13,7 @@ library (
 )
 
 void zwaveEvent(hubitat.zwave.commands.versionv3.VersionReport cmd)  { 
-
+    log.info "Version report: ${cmd}"
 	String thisDeviceVersion 
 	thisDeviceVersion = "${cmd.firmware0Version}." + "${cmd.firmware0SubVersion}".padLeft(3,"0")
 	updateDataValue("mainFirmwareVersion", thisDeviceVersion)

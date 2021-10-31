@@ -36,7 +36,8 @@ Map getThisDeviceDatabaseRecord() {
 		endpoints:[
 				0:[ children:[[type:'Generic Component Motion Sensor', 'namespace':'hubitat', childName:"Motion Sensor"]],
 					classes:[80, 85, 89, 90, 94, 108, 112, 113, 114, 115, 122, 128, 133, 134, 135, 142, 159], 
-					notificationsSupported:[7:[3, 8], 8:[1, 5], 9:[4, 5]]]
+					notificationsSupported:[7:[3, 8], 8:[1, 5], 9:[4, 5]]
+					]
 				],
 		deviceInputs:[
 			1:[ size:1,	category:"advanced", name:"1", title:"(1) Heartbeat Interval", description:"Number of minutes between heartbeats.", range:"1..70",  type:"number" ],
@@ -54,12 +55,12 @@ Map getThisDeviceDatabaseRecord() {
 	],
 	[
 	formatVersion:1, 
-	fingerprints:[['manufacturer':634, 'deviceId':18, 'deviceType':769, name:'Zooz: ZSE18']], 
+	fingerprints:[['manufacturer':634, 'deviceId':18, 'deviceType':769, name:'Zooz ZSE18']], 
 	classVersions:[89:1, 48:2, 152:0, 0:1, 132:2, 122:1, 133:2, 112:1, 134:2, 113:5, 114:1, 115:1, 159:0, 90:1, 128:1, 108:0, 94:1, 85:0, 32:1], 
 	endpoints:[
-		0:[	children:[[type:'Generic Component Motion Sensor', 'namespace':'hubitat', childName:"Motion Sensor"]],
-			classes:[0, 32, 48, 85, 89, 90, 94, 108, 112, 113, 114, 115, 122, 128, 132, 133, 134, 152, 159], 
-			notificationsSupported:[7:[8, 9]]]
+		0:[	children:[[type:'Generic Component Motion Sensor', 'namespace':'hubitat', childName:"Motion Sensor"				]],
+			classes:[0, 32, 48, 85, 89, 90, 94, 108, 112, 113, 114, 115, 122, 128, 132, 133, 134, 152, 159]
+			]
 		], 
 	deviceInputs:[
 		12:[size:1, name:'12', description:' 1 = low sensitivity and 8 = high sensitivity.', range:'1..8', title:'(12)  PIR sensor sensitivity', type:'number'], 
@@ -74,8 +75,8 @@ Map getThisDeviceDatabaseRecord() {
 	[
 		formatVersion:1,
 		fingerprints: [
-				[manufacturer:0x0184, 	deviceId: 0x3034,  deviceType:0x4447, name:"Dragon Tech WD100"],
 				[manufacturer:0x000C, 	deviceId: 0x3034,  deviceType:0x4447, name:"HomeSeer WD100+"],
+                [manufacturer:0x0184, 	deviceId: 0x3034,  deviceType:0x4447, name:"Dragon Tech WD100"],
 				[manufacturer:0x0315, 	deviceId: 0x3034,  deviceType:0x4447, name:"ZLink Products WD100+"],
 				],
 		classVersions: [89:1, 38:1, 39:1, 122:2, 133:2, 112:1, 134:2, 114:2, 115:1, 90:1, 91:1, 94:1, 32:1, 43:1],
@@ -192,7 +193,7 @@ Map getThisDeviceDatabaseRecord() {
 	[
 		formatVersion:1, 
 		fingerprints:[
-				[manufacturer:634, deviceId:40963, deviceType:40960, name:'Zooz: ZEN25']
+				[manufacturer:634, deviceId:40963, deviceType:40960, name:'Zooz ZEN25']
 			], 
 		classVersions:[0:1, 32:1, 37:1, 50:3, 89:1, 90:1, 94:1, 96:2, 112:1, 113:8, 114:1, 115:1, 122:1, 133:2, 134:2, 142:3], 
 		endpoints:[
@@ -276,7 +277,8 @@ Map getThisDeviceDatabaseRecord() {
 		]
 	],
 	[
-		formatVersion:1, 'fingerprints':[['manufacturer':634, 'deviceId':40961, 'deviceType':40960, name:'Zooz: ZEN26']], 
+		formatVersion:1, 
+		'fingerprints':[['manufacturer':634, 'deviceId':40961, 'deviceType':40960, name:'Zooz ZEN26']], 
 		classVersions:[89:1, 37:1, 142:3, 0:1, 122:1, 133:2, 112:1, 134:2, 114:1, 115:1, 90:1, 91:3, 94:1, 32:1], 
 		endpoints:[ 0:[
 						children:[ [type:'Generic Component Switch', 'namespace':'hubitat']	],
@@ -298,7 +300,7 @@ Map getThisDeviceDatabaseRecord() {
 	[
 		formatVersion:1, 
 		fingerprints:[
-				['manufacturer':634, 'deviceId':40968, 'deviceType':40960, name:'Zooz: ZEN30'] // Zooz Zen 30
+				['manufacturer':634, 'deviceId':40968, 'deviceType':40960, name:'Zooz ZEN30'] // Zooz Zen 30
 			], 
 		classVersions:[0:1, 32:1, 37:1, 38:3, 89:1, 90:1, 91:3, 94:1, 96:2, 112:1, 114:1, 115:1, 122:1, 133:2, 134:2, 142:3, 152:2], 
 		endpoints:[
@@ -339,9 +341,10 @@ Map getThisDeviceDatabaseRecord() {
 				[deviceType:1, name:"Allegion: BE469ZP", deviceId:1129, manufacturer:59]
 				],
 		classVersions:[99:1, 34:1, 78:1, 89:1, 152:1, 0:1, 122:1, 133:2, 112:1, 134:2, 113:8, 114:1, 115:1, 138:1, 90:1, 128:1, 94:1, 32:1, 98:1], 
-		endpoints:[	0:[	notificationsSupported:[6:[1, 2, 5, 6, 9, 11], 7:[2]],
+		endpoints:[	0:[	
 						children:[[childName:"Schlage BE469ZP Lock", namespace:"jvm", type:"Generic Component Schlage BE469ZP Lock"]], 
-						classes:[0, 32, 34, 78, 89, 90, 94, 98, 99, 112, 113, 114, 115, 122, 128, 133, 134, 138, 152]
+						classes:[0, 32, 34, 78, 89, 90, 94, 98, 99, 112, 113, 114, 115, 122, 128, 133, 134, 138, 152],
+                        notificationsSupported:[0:0] // [0:0] suppresses notification refreshes!
 						]
 					],
 		deviceInputs: [

@@ -78,7 +78,7 @@ Boolean setParameter(Map params = [parameterNumber: null , value: null ] ){
 	
 	if (!PSize) {log.error "Device ${device.displayName}: Could not get parameter size in function setParameter. Defaulting to 1"; PSize = 1}
 
-	log.debug "Sending a parameter update for: scaledConfigurationValue:  ${params.value as BigInteger}, parameterNumber: ${params.parameterNumber}, size: ${PSize} "
+	if (logEnable) log.debug "Sending a parameter update for: scaledConfigurationValue:  ${params.value as BigInteger}, parameterNumber: ${params.parameterNumber}, size: ${PSize} "
 	advancedZwaveSend(zwave.configurationV1.configurationSet(scaledConfigurationValue: params.value as BigInteger, parameterNumber: params.parameterNumber, size: PSize))
 	
 	// The 'get' should not be supervised!
@@ -168,7 +168,6 @@ void zwaveEvent(hubitat.zwave.commands.configurationv2.ConfigurationReport  cmd)
 		
 	myReportQueue(cmd.CMD).offer( cmd )
 	
-	log.debug "sending the parse report to the child devices"
 	(childDevices + this).each{ it.parse([[name:"parameterUpdate", report:cmd]])}
 }
 

@@ -36,7 +36,7 @@ void showParameterStorageMap(){
 }
 
 Map<Integer, Map> getAllParameterCharacteristics(){
-	return getThisDeviceDatabaseRecord().deviceInputs
+	return getThisDeviceDatabaseRecord()?.deviceInputs
 }
 
 Map getInputs(){
@@ -54,7 +54,6 @@ Map parameterCharacteristics(Integer parameter) {
 
 Integer getParameterSize(parameterNumber) {
 	Integer rValue = parameterCharacteristics((int) parameterNumber).size
-	log.debug "Parameter size for ${parameterNumber} is ${rValue}"
 	return rValue
 }
 
@@ -107,28 +106,29 @@ void getParameter(number){
 
 Integer getParameterValue(params = [:]) {
 
-	Map inputs = [parameterNumber: null , useCache: true , waitTime: 1] << params
-	log.debug "getting a parameter value using inputs ${inputs}"
+	Map inputs = [parameterNumber: null , useCache: true , waitTime: 4] << params
 	if (inputs.parameterNumber.is( null ))  {
 			log.error "In function getParameterValue, no parameter number was specified. Returning null"
 			return null
 		}
 	Integer rValue = null
-	if (inputs.useCache) rValue = getParameterStorageMap().get((int) inputs.parameterNumber)
+	if (inputs.useCache as Boolean) rValue = getParameterStorageMap()?.get((int) inputs.parameterNumber)
 
+	if (logEnable) "Obtained parameter ${inputs.parameterNumber} from cache. Value is ${rValue}."
+	
 	Integer attempt = 1
 	while(rValue.is( null ) && (attempt <= 2)){
 			advancedZwaveSend( zwave.configurationV1.configurationGet(parameterNumber: (int) inputs.parameterNumber))
 			hubitat.zwave.Command report = myReportQueue("7006").poll((int) inputs.waitTime, TimeUnit.SECONDS)
 			if (logEnable) log.debug "Device ${device.displayName}: Received a parameter configuration report: ${report}."		
-			rValue = getParameterStorageMap().get((int) inputs.parameterNumber)
+			rValue = getParameterStorageMap()?.get((int) inputs.parameterNumber)
 			attempt++
 	}
 	return rValue
 }
 
-def setParameter(parameterNumber, value) {setParameter(parameterNumber:parameterNumber, value:value)}
-def setParameter( Map params = [:]){
+hubitat.zwave.Command setParameter(parameterNumber, value) {setParameter(parameterNumber:parameterNumber, value:value)}
+hubitat.zwave.Command setParameter( Map params = [:]){
 	Map inputs = [parameterNumber: null , value: null , waitTime: 5] << params
 	if (inputs.parameterNumber.is( null ) || inputs.value.is( null ) )   {
 			log.error "In function setParameter, parameter number or value was null. ${inputs}"
@@ -138,13 +138,14 @@ def setParameter( Map params = [:]){
 		log.error "For parameter ${inputs.parameterNumber}, value specified ${inputs.value} is not within permitted range."
 		// return false
 	}
-	log.debug "setting a parameter value using inputs ${inputs}"
 
 	advancedZwaveSend(zwave.configurationV1.configurationSet(scaledConfigurationValue: (inputs.value as BigInteger), parameterNumber: (inputs.parameterNumber), size: (getParameterSize(inputs.parameterNumber)) ))
 
 	advancedZwaveSend( zwave.configurationV1.configurationGet(parameterNumber: (inputs.parameterNumber)))
 	
 	hubitat.zwave.Command  report = myReportQueue("7006").poll(inputs.waitTime, TimeUnit.SECONDS) 
+	if (logEnable || (!report)) log.debug "Device ${device.displayName}: attempted setting parameter ${inputs.parameterNumber} to value ${inputs.value}. Received report ${report}"
+	
 	return report
 }
 
@@ -163,10 +164,9 @@ void clearSettings(){
 
 // This is called within the updated() routine to update values!
 Boolean updateDeviceSettings(){
-	Map rValue = getAllParameterCharacteristics()?.collectEntries{ k, v -> 
-		Integer thisSettingValue = (settings.get("${k}" as String)) as Integer
+	Map rValue = getAllParameterCharacteristics()?.collectEntries{ k, v ->
+		Integer thisSettingValue = (settings?.get("${k}" as String)) as Integer
 		Integer currentParameterValue = getParameterValue(parameterNumber:(k as Integer))
-		log.debug "Attempting update of parameter ${k}: current value: ${currentParameterValue}, new value: ${thisSettingValue}."
 
 		Integer newValue = null
 		
@@ -183,8 +183,8 @@ Boolean updateDeviceSettings(){
 		}
 	}
 	if (rValue != parameterStorageMap) log.warn "Mismatch between maps. rValue = ${rValue}, parameterStorageMap = ${parameterStorageMap}"
-	parameterStorageMap.each{ k, v -> device.updateSetting("${k}" as String, v as Integer)}
-	log.debug "New Settings are: " + settings
+	parameterStorageMap?.each{ k, v -> device.updateSetting("${k}" as String, v as Integer)}
+	log.info "New Settings are: " + settings
 	return true
 }
 

@@ -35,7 +35,7 @@ void parse(String description) { log.warn "parse(String description) not impleme
 
 void parse(List description) {
     description.each {
-        if (it.name in ["switch", "power", "energy", "voltage", "energyConsumed", "amperage", "push",  "held", "released", "doubleTapped", "multiTapButton"]) {
+        if (device.hasAttribute(it.name)) {
             if (txtEnable) log.info it.descriptionText
             sendEvent(it)
         }
