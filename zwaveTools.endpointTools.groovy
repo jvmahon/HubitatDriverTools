@@ -33,12 +33,13 @@ Map getFullEndpointRecord() {
 	dataRecordByProductType.get("endpoints", new ConcurrentHashMap(8, 0.75, 1)) // from globalDataTools
 }
 
+@groovy.transform.CompileStatic
 Map getThisEndpointData(Integer ep) {
 	fullEndpointRecord.get((ep ?: 0), [:])
 }
 
-List<Integer> getThisEndpointClasses(ep) {
-	List<Integer> rValue = getThisEndpointData(ep).get("classes", [])
+List<Integer> getThisEndpointClasses(Integer ep) {
+	List<Integer> rValue = getThisEndpointData((Integer) ep).get("classes", [])
 	
 	// If they don't exist and its endpoint 0, create them from the inClusters and secureInClusters data.
 	if ( ((Integer)(ep ?: 0) == 0) && (rValue.size() == 0 ) ) {
@@ -47,11 +48,12 @@ List<Integer> getThisEndpointClasses(ep) {
 	return rValue
 }
 
+@groovy.transform.CompileStatic
 Integer getEndpointCount(){
 	fullEndpointRecord.findAll({it.key != 0}).size() ?: 0
 }
 
-Map<Integer,List> getEndpointNotificationsSupported(ep){
+Map<Integer,List> getEndpointNotificationsSupported(Integer ep){
 	getThisEndpointData(ep).get("notificationsSupported", [:])
 }
 
@@ -60,18 +62,17 @@ List<Integer> getEndpointMetersSupported( Integer ep = null ){
 }
 
 // Get the endpoint number for a child device
+@groovy.transform.CompileStatic
 Integer getChildEndpointNumber(com.hubitat.app.DeviceWrapper thisChild) {
 	if (! thisChild) return 0
 	thisChild.deviceNetworkId.split("-ep")[-1] as Integer
 }
-
 
 // Get List (possibly multiple) child device for a specific endpoint. Child devices can also be of the form '-ep000' 
 // Child devices associated with the root device end in -ep000
 List<com.hubitat.app.DeviceWrapper> getChildDeviceListByEndpoint( Integer ep ) {
 	childDevices.findAll{ getChildEndpointNumber(it)  == (ep ?: 0) }
 }
-
 
 void sendEventToEndpoints(Map inputs)
 {
@@ -82,7 +83,7 @@ void sendEventToEndpoints(Map inputs)
 		return
 	}
 	
-	params << inputs << [ep: ((params.ep ?: 0) as Integer)]
+	params << inputs << [ep: ((Integer)(params.ep ?: 0) )]
 	
 	List<com.hubitat.app.DeviceWrapper> targetDevices = getChildDeviceListByEndpoint(params.ep)
 	
@@ -110,7 +111,6 @@ void sendEventToAll(Map inputs)
 		}
 	}
 }
-
 
 // Debugging Functions
 void showEndpointlDataRecord() {

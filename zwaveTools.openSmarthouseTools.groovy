@@ -183,7 +183,7 @@ Map createInputControls(data)
 			Map newInput = [name: param_name_string, title: title_string, size:it.size]
 			if ((it.description.size() != 0) && (it.description != it.label)) newInput.description = it.description
 
-			def deviceOptions = [:]
+			Map deviceOptions = [:]
 			it.options.each { deviceOptions.put(it.value, it.label) }
 			
 			// Set input type. Should be one of: bool, date, decimal, email, enum, number, password, time, text. See: https://docs.hubitat.com/index.php?title=Device_Preferences

@@ -1,6 +1,5 @@
 import java.util.concurrent.* // Available (allow-listed) concurrency classes: ConcurrentHashMap, ConcurrentLinkedQueue, Semaphore, SynchronousQueue
 import groovy.transform.Field
-
 //////////////
 #include zwaveTools.sendReceiveTools
 Integer getS2MaxRetries() { return 5 }
@@ -11,106 +10,113 @@ Integer getS2MaxRetries() { return 5 }
 #include zwaveTools.versionInfoTools
 #include zwaveTools.zwaveDeviceDatabase
 #include zwaveTools.notificationTools
-// #include zwaveTools.meterTools
-// #include zwaveTools.sensorTools
-// #include zwaveTools.binaryAndMultilevelDeviceTools
-// #include zwaveTools.centralSceneTools
+#include zwaveTools.meterTools
+#include zwaveTools.sensorTools
+#include zwaveTools.binaryAndMultilevelDeviceTools
+#include zwaveTools.centralSceneTools
 #include zwaveTools.openSmarthouseTools
 #include zwaveTools.childDeviceTools
-#include zwaveTools.parameterManagementTools
-#include zwaveTools.lockTools
-/////////////////
-
+#include zwaveTools.parameterGetSendTools
 
 metadata {
-	definition (name: "Any Z-Wave Lock v1.6.2",namespace: "jvm", author: "jvm", singleThreaded:false) {
+	definition (name: "Any Z-Wave Device Universal Parent Driver v1.7.5",namespace: "jvm", author: "jvm", singleThreaded:false) {
 		capability "Initialize"
 		capability "Refresh"
+	
+		// Uncomment capabilities that you want to expose in the parent.
+		// Otherwise, all capabilities / attributes are by adding child devices.
+			// capability "Actuator"
+			// capability "Switch"
+			// capability "SwitchLevel"		
 
-		command "identify" // implements the Z-Wave Plus identify function which can flash device indicators.
-		command "resetDriver" // deletes the stored state information
+		capability "PushableButton"
+		capability "HoldableButton"
+		capability "ReleasableButton"
+		capability "DoubleTapableButton"	
+		attribute "multiTapButton", "number"
+        // capability "Sensor"				
+        // capability "MotionSensor"
+        // capability "TamperAlert"
+		// capability "WaterSensor"
+		// capability "ContactSensor"
+		// capability "ShockSensor"		// Use this for glass breakage!
+		// capability "IllumanceMeasurement"
+		// capability "LiquidFlowRate"
+		// attribute "carbonDioxideDetected"
+		
+		// capability "Battery"
+
+		// capability "Consumable" 		// For smoke, CO, CO2 alarms that report their end-of-life
+		// capability "FilterStatus" 	// For water filters that report status of filter
+		
+
+		// command "identify" // implements the Z-Wave Plus identify function which can flash device indicators.
+		// command "resetDriver" // deletes the stored state information
 
 		command "addNewChildDevice", [[name:"Device Name*", type:"STRING"], 
                                       [name:"componentDriverName*",type:"ENUM", constraints:(getDriverChoices()) ], 
                                       [name:"Endpoint",type:"NUMBER", description:"Endpoint Number, blank or 0 = root" ] ]
 
-							
+  
+        command "multiTap", [[name:"button",type:"NUMBER", description:"Button Number", constraints:["NUMBER"]],
+		 			[name:"taps",type:"NUMBER", description:"Tap count", constraints:["NUMBER"]]]								
 		command "setParameter",[[name:"parameterNumber",type:"NUMBER", description:"Parameter Number", constraints:["NUMBER"]],
 					[name:"value",type:"NUMBER", description:"Parameter Value", constraints:["NUMBER"]]
 					]	
-		command "refreshManufacturerSpecificInfo"
+		
+		command "getParameter",[[name:"parameterNumber",type:"NUMBER", description:"Parameter Number", constraints:["NUMBER"]]
+					]	
+		// command "refreshManufacturerSpecificInfo"
+		
+		// command "showParameterStorageMap"
+		// command "clearSettings"
 		
 		// Following Command is to help create a new data record to be added to deviceDatabase
        //  command "logDataRecord"
+	   
+		fingerprint  mfr:"0346", prod:"0301", deviceId:"0301", deviceJoinName:"Ring G2 Motion Sensor"
+		fingerprint  mfr:"027A", prod:"0301", deviceId:"0012", deviceJoinName:"Zooz: ZSE18"
+		fingerprint  mfr:"000C", prod:"4447", deviceId:"3034", deviceJoinName:"HomeSeer WD100+"
+		fingerprint  mfr:"000C", prod:"4447", deviceId:"3033", deviceJoinName:"HomeSeer WS100 Switch"
+		fingerprint  mfr:"000C", prod:"4447", deviceId:"3036", deviceJoinName:"HomeSeer Technologies: HS-WD200+"
+		fingerprint  mfr:"000C", prod:"4447", deviceId:"3035", deviceJoinName:"HomeSeer Technologies: HS-WS200+"
+		fingerprint  mfr:"0063", prod:"4952", deviceId:"3135", deviceJoinName:"Jasco Products: 46201"
+		fingerprint  mfr:"031E", prod:"000E", deviceId:"0001", deviceJoinName:"Inovelli LZW36 Light/Fan Controller"
+		fingerprint  mfr:"0063", prod:"4F44", deviceId:"3032", deviceJoinName:"GE/Jasco Heavy Duty Switch 14285"
+		fingerprint  mfr:"027A", prod:"A000", deviceId:"A003", deviceJoinName:"Zooz: ZEN25"
+		fingerprint  mfr:"027A", prod:"A000", deviceId:"A001", deviceJoinName:"Zooz: ZEN26"
+		fingerprint  mfr:"027A", prod:"A000", deviceId:"A003", deviceJoinName:"Zooz: ZEN30"
+		fingerprint  mfr:"003B", prod:"0001", deviceId:"0469", deviceJoinName:"Allegion: BE469ZP"
+
 
     }
 	
-	preferences 
-	{	
+	preferences  {	
         input name: "showParameterInputs", type: "bool", title: "Show Parameter Value Input Controls", defaultValue: false    
 		input name: "logEnable", type: "bool", title: "Enable debug logging", defaultValue: false
 		input name: "txtEnable", type: "bool", title: "Enable text logging", defaultValue: true
 
 		if (showParameterInputs) {
-			getParameterValuesFromDevice()
-			deviceInputs?.each{key, value -> input value}
+			// parameterStorageMap.each{k, v -> device.updateSetting("${k}", v as Integer)}
+			getInputs()?.each{key, value -> input value}
         }
-
     }	
 }
-/////////////////////////////////////////////////////////////////////////
-//////        Create and Manage Child Devices for Endpoints       ///////
-/////////////////////////////////////////////////////////////////////////
 
-void logDataRecord() {
-log.debug dataRecordByProductType
+Map getUserDefinedParameterInputs(){
+	Map returnMe = getDataRecordByProductType()?.deviceInputs?.sort({it.key})
+	if (logEnable && returnMe.is( null ) ) log.warn "Device ${device.displayName}: Device has no inputs. Check if device was initialized. returnMe is ${returnMe}."
+	return returnMe
 }
 
-/////////////////////////////////////////////////////////////////
-
-void identify() {
-	log.warn "Device ${device.displayName}: The 'identify' function is experimental and only works for Zwave Plus Version 2 or greater devices!"
-	// Identify function supported by Zwave Plus Version 2 and greater devices!
-		List<Map<String, Short>> indicators = [
-			[indicatorId:0x50, propertyId:0x03, value:0x08], 
-			[indicatorId:0x50, propertyId:0x04, value:0x03],  
-			[indicatorId:0x50, propertyId:0x05, value:0x06]
-		]
-		advancedZwaveSend(zwave.indicatorV3.indicatorSet(indicatorCount:3 , value:0, indicatorValues: indicators ))
+def updated(){
+	// waiting for the Boolean prevents updated from returning prematurely
+	Boolean done = updateDeviceSettings()
 }
 
-
-void resetDriver() {
-	state.clear()
-}
-
-void clearLeftoverStates() {
-	List<String> allowed = ["deviceRecord"] 
-	
-	// Can't modify state from within state.each{}, so first collect what is unwanted, then remove in a separate unwanted.each
-	List<String> unwanted = state.collect{ 
-			if (allowed.contains( it.key as String)) return
-			return it.key
-		}.each{state.remove( it ) }
-}
-
-void removeAllSettings() {
-    if (logEnable) log.debug "settings before clearing: " + settings
-    // Copy keys set first to avoid any chance of concurrent modification
-    def keys = new HashSet(settings.keySet())
-    keys.each{ key -> device.removeSetting(key) }
-     if (logEnable) log.debug "settings after clearing: " + settings
-}
-
-void initialize()
-{
-	// removeAllSettings()
-	// By default, hide the parameter settings inputs since displaying them forces a refresh of all values the first time they are shown and is time consuming!
+void initialize(){
     device.updateSetting("showParameterInputs",[value:"false",type:"bool"])
-
-	clearLeftoverStates()
-	log.info "Device ${device.displayName}: Initializing."
-
+	
 	/////////////////////////////////////////////////////////////////////////////////////
 	///                      Don't Alter this code block code!                        ///
 	/// This code manages the different ways in which the device record may be stored ///
@@ -127,6 +133,7 @@ void initialize()
 	if (localDataRecord && (localDataRecord.formatVersion == dataRecordFormatVersion)){
 		state.remove("deviceRecord") // If a device data record from openSmartHouse was added to the state, delete it as it is now in the local database.
 		dataRecordByProductType.putAll(reparseDeviceData(localDataRecord)) // Store in the Global ConcurrentHashMap
+        updateDataValue("deviceModel", localDataRecord?.fingerprints[0]?.name)
 	} else if ( state.deviceRecord && getDataRecordByProductType().deviceRecord.is( null ) ) { 
 		// Put in the Global ConcurrentHashMap if it exists in state.
 		dataRecordByProductType.putAll(reparseDeviceData(state.deviceRecord)) // Store in the Global ConcurrentHashMap
@@ -146,7 +153,7 @@ void initialize()
 	}
 	///////////////////////////////////////////////////////////////////////////////////
 	//////////          Done with Device Data Record Management      //////////////////
-	///////////////////////////////////////////////////////////////////////////////////	
+	///////////////////////////////////////////////////////////////////////////////////		
 	List<Integer> supportedClasses = getThisEndpointClasses(ep)
 	
 	// Create child devices if this is a multi-channel device.
@@ -159,27 +166,23 @@ void initialize()
 	if (getDataRecordByProductType().classVersions?.containsKey(0x6C)) sendInitialCommand()
 	
 	if (txtEnable) log.info "Device ${device.displayName}: Refreshing device data."
-	refresh()  
-    versionInfoTools_refreshVersionInfo()
+	runIn(60, refresh)  
+    runIn(5, versionInfoTools_refreshVersionInfo)
 	
 	if (txtEnable) log.info "Device ${device.displayName}: Done Initializing."
-
+    
+    // schedule('0 */15 * ? * * *', refresh)
+    unschedule()	
+	
 }
 
-//////////// Get Inputs //////////////
+//////////////////////////////////////////////////
+///////      Handle Parameter Report      ////////
+//////////////////////////////////////////////////
+// If a paramter gets changed in the parameterGetSendTools library, it can be handled by the driver here.
 
-Map getDeviceInputs()  { 
-	Map returnMe = getDataRecordByProductType()?.deviceInputs?.sort({it.key})
-	if (logEnable && returnMe.is( null ) ) log.warn "Device ${device.displayName}: Device has no inputs. Check if device was initialized. returnMe is ${returnMe}."
-	return returnMe
-}
-
-Map filteredDeviceInputs() {
-	if (advancedEnable) { 
-		return getDeviceInputs()?.sort()
-	} else  { // Just show the basic items
-		return 	getDeviceInputs()?.findAll { it.value.category != "advanced" }?.sort()
-	}
+void handleParameterReport(hubitat.zwave.commands.configurationv2.ConfigurationReport  cmd) {
+	if (logEnable) log.debug "Function handleParameterReport received the report ${cmd}."
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -207,8 +210,8 @@ void refreshEndpoint(Map params = [cd: null, ep: null ])
 		if (supportedClasses.contains(0x25)) 		advancedZwaveSend(zwave.switchBinaryV1.switchBinaryGet(), ep)
 		if (supportedClasses.contains(0x26)) 		advancedZwaveSend(zwave.switchMultilevelV4.switchMultilevelGet(), ep)
 		if (supportedClasses.contains(0x32) && meterTools_refresh) 			meterTools_refresh(ep)
-		if (supportedClasses.contains(0x71) && notificationTools_refresh ) 	notificationTools_refresh(ep)
-		if (record.classes.contains(0x62)   && locktools_refresh) 		locktools_refresh(ep)
+		if (supportedClasses.contains(0x71) && notificationTools_refresh) 	notificationTools_refresh(ep)
+		if (supportedClasses.contains(0x62)   && locktools_refresh) 		locktools_refresh(ep)
 		if (supportedClasses.contains(0x80)) 		batteryTools_refreshBattery()
 }
 
@@ -236,3 +239,4 @@ void logsOff() {
 void zwaveEvent(hubitat.zwave.commands.hailv1.Hail cmd) {
 	refresh()
 }
+

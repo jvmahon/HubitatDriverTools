@@ -69,12 +69,12 @@ Map getAllParameterValues(){
 Boolean parameterRangeValid( inputs = [parameterNumber: null , value: null ]) {
 	Map thisParameter = parameterCharacteristics((int) inputs.parameterNumber)
 	
-	if (thisParameter.maxValue && ((int) thisParameter.maxValue < (int) inputs.value)) {
+	if (thisParameter?.maxValue && inputs?.value && ((int) thisParameter.maxValue < (int) inputs.value)) {
 		log.warn "For parameter ${inputs.parameterNumber}, value ${inputs.value} exceeds maximum permitted value of ${thisParameter.maxValue}"
 		return false
 		}
-	if (thisParameter.minValue && ((int) thisParameter.minValue > (int) inputs.value)) {
-		log.warn "For parameter ${inputs.parameterNumber}, value ${inputs.value} is below minimum permitted value of ${thisParameter.minValue}"
+	if (thisParameter?.minValue && inputs?.value && ((int) thisParameter.minValue > (int) inputs.value)) {
+		log.warn "For parameter ${inputs?.parameterNumber}, value ${inputs?.value} is below minimum permitted value of ${thisParameter?.minValue}"
 		return false
 		}
 		
@@ -154,7 +154,7 @@ hubitat.zwave.Command setParameter( Map params = [:]){
 void clearSettings(){
 	List<String> preserve = ["txtEnable", "logEnable"] // If particular settings are to be preserved, list them here
 
-    def keys = new HashSet(settings.keySet())
+    HashSet keys = new HashSet(settings.keySet())
     keys.each{ key -> device.removeSetting(key) }
 	 
 	device.removeSetting("")

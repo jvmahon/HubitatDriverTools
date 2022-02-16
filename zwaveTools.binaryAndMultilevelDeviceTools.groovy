@@ -29,10 +29,6 @@ void sendInitialCommand() {
 	}
 }
 
-void binaryAndMultiLevelDeviceTools_refresh() {
-		if (record.classes.contains(0x25)) 		advancedZwaveSend(zwave.switchBinaryV1.switchBinaryGet(), ep)
-		if (record.classes.contains(0x26)) 		advancedZwaveSend(zwave.switchMultilevelV4.switchMultilevelGet(), ep)
-}
 
 ////    Send Simple Z-Wave Commands to Device  ////	
 void sendZwaveValue(Map params = [value: null , duration: null , ep: null ] )
@@ -54,7 +50,8 @@ void sendZwaveValue(Map params = [value: null , duration: null , ep: null ] )
 	}
 }
 
-void zwaveEvent(hubitat.zwave.commands.switchbinaryv2.SwitchBinaryReport cmd, ep = null )
+
+void zwaveEvent(hubitat.zwave.commands.switchbinaryv2.SwitchBinaryReport cmd, Integer ep = null )
 {
 	String newSwitchState = ((cmd.value > 0) ? "on" : "off")
 	Map switchEvent = [name: "switch", value: newSwitchState, descriptionText: "Switch set to ${newSwitchState}", type: "physical"]
@@ -69,8 +66,10 @@ void zwaveEvent(hubitat.zwave.commands.switchbinaryv2.SwitchBinaryReport cmd, ep
 	if (targetDevices.size() < 1) log.error "Device ${device.displayName}: received a Switch Binary Report for a device that does not have a switch attribute. Endpoint ${ep ?: 0}."
 }
 
-void zwaveEvent(hubitat.zwave.commands.switchmultilevelv4.SwitchMultilevelReport cmd, ep = null ) { processSwitchReport(cmd, ep) }
-void zwaveEvent(hubitat.zwave.commands.basicv2.BasicReport cmd, ep = null ) { processSwitchReport(cmd, ep) }
+@groovy.transform.CompileStatic
+void zwaveEvent(hubitat.zwave.commands.switchmultilevelv4.SwitchMultilevelReport cmd, Integer ep = null ) { processSwitchReport(cmd, ep) }
+@groovy.transform.CompileStatic
+void zwaveEvent(hubitat.zwave.commands.basicv2.BasicReport cmd, Integer ep = null ) { processSwitchReport(cmd, ep) }
 void processSwitchReport(cmd, ep)
 {
 
@@ -110,6 +109,7 @@ void processSwitchReport(cmd, ep)
 	}
 }
 
+@groovy.transform.CompileStatic
 void componentOn(com.hubitat.app.DeviceWrapper cd){ on(cd:cd) }
 
 void on(Map inputs = [:] )
@@ -134,6 +134,7 @@ void on(Map inputs = [:] )
 	sendZwaveValue(value: targetLevel, duration: params.duration, ep: ep)
 }
 
+@groovy.transform.CompileStatic
 void componentOff(com.hubitat.app.DeviceWrapper cd){ 	off(cd:cd) }
 
 void off(Map inputs = [:]) {
@@ -143,6 +144,7 @@ void off(Map inputs = [:]) {
 	sendZwaveValue(value: 0, duration: params.duration, ep: ep)
 }
 
+@groovy.transform.CompileStatic
 void componentSetLevel(com.hubitat.app.DeviceWrapper cd, level, transitionTime = null) {
 	if (cd.hasCapability("FanControl") ) {
 			setSpeed(cd:cd, level:level, speed:levelToSpeed(level as Integer))
@@ -151,10 +153,12 @@ void componentSetLevel(com.hubitat.app.DeviceWrapper cd, level, transitionTime =
 		}
 }
 
+@groovy.transform.CompileStatic
 void setLevel(level, duration = null ) {
 	setLevel(level:level, duration:duration)
 }
 	
+@groovy.transform.CompileStatic
 void setLevel(Map params = [cd: null , level: null , duration: null ])
 {
 	if ( (params.level as Integer) <= 0) {
@@ -165,8 +169,9 @@ void setLevel(Map params = [cd: null , level: null , duration: null ])
 }
 
 
-void componentStartLevelChange(com.hubitat.app.DeviceWrapper cd, direction) { startLevelChange(direction, cd) }
-void startLevelChange(direction, cd = null ){
+@groovy.transform.CompileStatic
+void componentStartLevelChange(com.hubitat.app.DeviceWrapper cd, String direction) { startLevelChange(direction, cd) }
+void startLevelChange(String direction, com.hubitat.app.DeviceWrapper cd = null ){
 	com.hubitat.app.DeviceWrapper targetDevice = (cd ? cd : device)
 	Integer ep = cd ? (cd.deviceNetworkId.split("-ep")[-1] as Integer) : null
 	
@@ -179,6 +184,7 @@ void startLevelChange(direction, cd = null ){
 
 
 
+@groovy.transform.CompileStatic
 void componentStopLevelChange(com.hubitat.app.DeviceWrapper cd) { stopLevelChange(cd) }
 void stopLevelChange(cd = null ){
 	com.hubitat.app.DeviceWrapper targetDevice = (cd ? cd : device)
@@ -192,6 +198,7 @@ void stopLevelChange(cd = null ){
 //////                Handle Fans                ///////
 ////////////////////////////////////////////////////////
 
+@groovy.transform.CompileStatic
 String levelToSpeed(Integer level)
 {
 // 	Map speeds = [(0..0):"off", (1..20):"low", (21..40):"medium-low", (41-60):"medium", (61..80):"medium-high", (81..100):"high"]
@@ -212,7 +219,9 @@ Integer speedToLevel(String speed) {
 	return ["off": 0, "low":20, "medium-low":40, "medium":60, "medium-high":80, "high":100].get(speed)
 }
 
+@groovy.transform.CompileStatic
 void componentSetSpeed(com.hubitat.app.DeviceWrapper cd, speed) { setSpeed(speed:speed, cd:cd) }
+@groovy.transform.CompileStatic
 void setSpeed(speed, com.hubitat.app.DeviceWrapper cd = null ) { setSpeed(speed:speed, cd:cd) }
 void setSpeed(Map params = [speed: null , level: null , cd: null ])
 {

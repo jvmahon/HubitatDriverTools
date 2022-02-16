@@ -27,6 +27,7 @@ import groovy.transform.Field
 void centralSceneTools_initialize(){
 	advancedZwaveSend(zwave.centralSceneV3.centralSceneSupportedGet())
 }
+
 String getCentralSceneButtonState(Integer button) { 
  	String key = "${device.deviceNetworkId}.Button.${button}"
 	return centralSceneButtonState.get(key)
@@ -44,13 +45,18 @@ void zwaveEvent(hubitat.zwave.commands.centralscenev3.CentralSceneSupportedRepor
 	(childDevices + this).each{ it.parse(events) }
 }
 
+@groovy.transform.CompileStatic
 void doubleTap(button) 	{ multiTap(button, 2)	}
+
+@groovy.transform.CompileStatic
 void push(button) 		{ multiTap(button, 1) }
+
 void hold(button) 		{ 
 		List<Map> events = []
 		events <<	[name:"held", value:button, type:"digital", isStateChange: true , descriptionText:"Holding button ${button}." ]
 		(childDevices + this).each{ it.parse(events) }
 	}
+
 void release(button) 	{ 
 		List<Map> events  = []
 		events << [name:"released", value:button, type:"digital", isStateChange: true , descriptionText:"Released button ${button}." ]

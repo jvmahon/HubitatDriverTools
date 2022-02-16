@@ -75,12 +75,12 @@ String getNextChild(Integer ep)
 		}
 	return rValue
 }
-void addNewChildDevice(String newChildName, String componentDriverName, endpoint) {
-	// log.debug "Driver name is ${newChildName} with driver component type ${componentDriverName} for endpoint ${endpoint}"
+void addNewChildDevice(String newChildName, String componentDriverName, ep) {
+	// log.debug "Driver name is ${newChildName} with driver component type ${componentDriverName} for endpoint ${ep}"
 	Map thisDriver = getInstalledDrivers().find{ "${it.name} (${it.namespace})" == componentDriverName }
 
 	// log.debug "selected driver is ${thisDriver}"
-	String thisChildNetworkId = getNextChild((int) (endpoint ?: 0))
+	String thisChildNetworkId = getNextChild((int) (ep ?: 0))
 	addChildDevice(thisDriver.namespace, thisDriver.name, thisChildNetworkId, [name: newChildName, isComponent: false])
 }
 

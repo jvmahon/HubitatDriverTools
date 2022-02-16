@@ -14,11 +14,11 @@ library (
 
 void zwaveEvent(hubitat.zwave.commands.batteryv3.BatteryReport cmd)  { 
 	if (cmd.batteryLevel == 0xFF) {
-		batteryEvent = [name: "battery", value:1, unit: "%", descriptionText: "Low Battery Alert 1%. Change now!"]
+		Map batteryEvent = [name: "battery", value:1, unit: "%", descriptionText: "Low Battery Alert 1%. Change now!"]
 	} else {
-		batteryEvent = [name: "battery", value:cmd.batteryLevel, unit: "%", descriptionText: "Battery level ${cmd.batteryLevel}%."]
+		Map batteryEvent = [name: "battery", value:cmd.batteryLevel, unit: "%", descriptionText: "Battery level ${cmd.batteryLevel}%."]
 	}
-	(childDevices + device).each{ it.sendEvent(batteryEvent) }
+	(childDevices + device)?.each{ it?.sendEvent(batteryEvent) }
 }
 
 void batteryTools_refreshBattery() {

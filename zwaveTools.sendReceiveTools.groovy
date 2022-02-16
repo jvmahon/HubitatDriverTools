@@ -15,6 +15,7 @@ import java.util.concurrent.*
 import groovy.transform.Field
 
 // create getUserParseMap() in driver to override.
+@groovy.transform.CompileStatic
 Map getDefaultParseMap () {
 	return [
 		0x20:2, // Basic Set
@@ -73,6 +74,7 @@ String secure(hubitat.zwave.Command cmd, Integer ep = null ){
 }
 
 // a simple unsupervised send with endpoint support
+@groovy.transform.CompileStatic
 void basicZwaveSend(hubitat.zwave.Command cmd, Integer ep = null ) { 
 	sendHubCommand(new hubitat.device.HubAction( secure(cmd, ep), hubitat.device.Protocol.ZWAVE)) 
 }
@@ -170,10 +172,13 @@ void advancedZwaveSend(Map inputs = [:]) {
 		sendUnsupervised(params)
 	}
 }
+
+@groovy.transform.CompileStatic
 void advancedZwaveSend(hubitat.zwave.Command cmd, Integer ep = null ) { 
 	advancedZwaveSend(cmd:cmd, ep:ep)
 }
 
+@groovy.transform.CompileStatic
 void sendSupervised(hubitat.zwave.Command cmd, Integer ep = null ) { 
     sendSupervised(cmd:cmd, ep:ep)
 }
@@ -211,9 +216,12 @@ void sendSupervised(Map inputs = [:]) {
 		basicZwaveSend(params.cmd, params.ep)
 	}
 }
+
+@groovy.transform.CompileStatic
 void sendUnsupervised(hubitat.zwave.Command cmd, Integer ep = null ) { 
 	basicZwaveSend(cmd, ep)
 }
+
 void sendUnsupervised(Map inputs = [:]) { 
 	Map params = [ cmd: null , onSuccess: null , onFailure: null , delay: null , ep: null ]
 	params << inputs
