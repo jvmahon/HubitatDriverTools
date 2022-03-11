@@ -19,7 +19,7 @@ Integer getS2MaxRetries() { return 5 }
 #include zwaveTools.parameterGetSendTools
 
 metadata {
-	definition (name: "Any Z-Wave Device Universal Parent Driver v1.7.5",namespace: "jvm", author: "jvm", singleThreaded:false) {
+	definition (name: "Any Z-Wave Device Universal Parent Driver v1.7.6",namespace: "jvm", author: "jvm", singleThreaded:false) {
 		capability "Initialize"
 		capability "Refresh"
 	
@@ -95,6 +95,8 @@ metadata {
         input name: "showParameterInputs", type: "bool", title: "Show Parameter Value Input Controls", defaultValue: false    
 		input name: "logEnable", type: "bool", title: "Enable debug logging", defaultValue: false
 		input name: "txtEnable", type: "bool", title: "Enable text logging", defaultValue: true
+        input name: "queryOnHubStart", type: "bool", title: "Query Device State at Hub Startup", defaultValue: true
+
 
 		if (showParameterInputs) {
 			// parameterStorageMap.each{k, v -> device.updateSetting("${k}", v as Integer)}
@@ -166,7 +168,7 @@ void initialize(){
 	if (getDataRecordByProductType().classVersions?.containsKey(0x6C)) sendInitialCommand()
 	
 	if (txtEnable) log.info "Device ${device.displayName}: Refreshing device data."
-	runIn(60, refresh)  
+    if (queryOnHubStart)  runIn(60, refresh)  
     runIn(5, versionInfoTools_refreshVersionInfo)
 	
 	if (txtEnable) log.info "Device ${device.displayName}: Done Initializing."
