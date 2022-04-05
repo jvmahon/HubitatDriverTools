@@ -7,6 +7,11 @@ If you select this driver for any device, be sure to click "Initialize" after sa
 
 Read below for other installation instructions.
 
+This driver is also availalbe as a set of bundled libraries here: https://github.com/jvmahon/HubitatDriverTools/tree/main/Bundled
+
+Libraries in non-zipped form are here: https://github.com/jvmahon/HubitatDriverTools
+
+I'll eventually document each library in the wiki here: https://github.com/jvmahon/HubitatDriverTools/wiki
 
 # II. What is the Universal Driver
 
