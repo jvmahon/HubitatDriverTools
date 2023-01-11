@@ -2160,11 +2160,14 @@ Map createInputControls(data) // library marker zwaveTools.openSmarthouseTools, 
 	Map inputControls = [:]	 // library marker zwaveTools.openSmarthouseTools, line 155
 	data?.each // library marker zwaveTools.openSmarthouseTools, line 156
 	{ // library marker zwaveTools.openSmarthouseTools, line 157
-		if (it.read_only as Integer) { // library marker zwaveTools.openSmarthouseTools, line 158
-				log.info "Device ${device.displayName}: Parameter ${it.param_id}-${it.label} is read-only. No input control created." // library marker zwaveTools.openSmarthouseTools, line 159
-				return // library marker zwaveTools.openSmarthouseTools, line 160
-			} // library marker zwaveTools.openSmarthouseTools, line 161
-
+		try{ // try/catch to handle the possible 'empty string' value
+			if (it.read_only as Integer) { // library marker zwaveTools.openSmarthouseTools, line 158
+					log.info "Device ${device.displayName}: Parameter ${it.param_id}-${it.label} is read-only. No input control created." // library marker zwaveTools.openSmarthouseTools, line 159
+					return // library marker zwaveTools.openSmarthouseTools, line 160
+				} // library marker zwaveTools.openSmarthouseTools, line 161
+		} catch (NumberFormatException e) {
+			log.error "Device ${device.displayName}: Parameter ${it.param_id}-${it.label} is empty. Treating as not read_only. - Rely on your user manual for proper values!."
+			}
 		if (it.bitmask.toInteger()) // library marker zwaveTools.openSmarthouseTools, line 163
 		{ // library marker zwaveTools.openSmarthouseTools, line 164
 			if (!(inputControls?.get(it.param_id))) // library marker zwaveTools.openSmarthouseTools, line 165
